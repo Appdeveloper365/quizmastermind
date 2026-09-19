@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — Quiz Mastermind</title>
+<style>
+  body{font-family:system-ui;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#222}
+  h1{font-size:1.6rem} h2{font-size:1.1rem;margin-top:1.6rem}
+  a{color:#0645ad} code{background:#f2f2f2;padding:.1rem .3rem;border-radius:3px}
+  .box{background:#f8f6ee;border-left:4px solid #e0b000;padding:.8rem 1rem;margin:1rem 0}
+  footer{margin-top:2.5rem;font-size:.85rem;color:#666}
+</style>
+</head>
+<body>
+<h1>Privacy Policy</h1>
+<p><strong>App:</strong> Quiz Mastermind — an AI trivia quiz that runs entirely in your browser.</p>
+<p><strong>Last updated:</strong> September 18, 2026</p>
+
+<div class="box">
+<strong>Short version:</strong> Quiz Mastermind has no accounts, no analytics and no server of its own.
+Everything personal stays on <em>your</em> device. When you generate a question, one prompt is sent to the
+AI provider <em>you</em> chose — using <em>your</em> API key — under that provider's own privacy policy.
+</div>
+
+<h2>1. What we store (only on your device)</h2>
+<ul>
+  <li><strong>AI provider keys</strong> (Gemini, Groq, Cerebras, OpenRouter, Cline): stored in your browser's <code>localStorage</code>, encrypted with AES-GCM using a PIN that only you know. The plaintext key never leaves your device except to call the provider you selected.</li>
+  <li><strong>Quiz data</strong>: your score, streak, history and which questions you've already seen (so they don't repeat) are kept in <code>localStorage</code> and <code>IndexedDB</code> on your device.</li>
+  <li><strong>Preferences</strong>: topic, difficulty and provider choices.</li>
+</ul>
+<p>Clearing your browser data, or using the in-app “Clear this key” / “Forget what I've seen” controls, removes it permanently. We cannot recover anything for you.</p>
+
+<h2>2. What leaves your device (only when you generate a question)</h2>
+<p>To write a question, your chosen AI provider receives a short prompt (topic + difficulty + a list of recently asked questions to avoid repeats). Depending on the provider you select:</p>
+<ul>
+  <li><strong>Google Gemini</strong> — data handled under Google's terms: <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a></li>
+  <li><strong>Groq</strong> — <a href="https://groq.com/privacy-policy/" rel="noopener">groq.com/privacy-policy</a></li>
+  <li><strong>Cerebras</strong> — <a href="https://www.cerebras.ai/privacy-policy" rel="noopener">cerebras.ai/privacy-policy</a></li>
+  <li><strong>OpenRouter</strong> — <a href="https://openrouter.ai/privacy" rel="noopener">openrouter.ai/privacy</a></li>
+  <li><strong>Cline API</strong> — <a href="https://cline.bot/privacy" rel="noopener">cline.bot/privacy</a></li>
+  <li><strong>Puter (optional)</strong> — AI calls run under <em>your</em> Puter account via <a href="https://puter.com" rel="noopener">puter.com</a> (“user-pays”); Puter's policy: <a href="https://puter.com/privacy" rel="noopener">puter.com/privacy</a></li>
+</ul>
+<p>Requests go directly from your browser to the provider. They do not pass through any server operated by Quiz Mastermind (there isn't one).</p>
+
+<h2>3. What we do NOT do</h2>
+<ul>
+  <li>No accounts or sign-ups on this site (Puter sign-in is an account with Puter, not with us).</li>
+  <li>No analytics, tracking, cookies set by us, ads, or profiling.</li>
+  <li>No reading of your contacts, files, camera or location.</li>
+</ul>
+
+<h2>4. Children</h2>
+<p>Content is generated to be suitable for all ages, but the app is directed at general audiences and is not specifically directed at children under 13.</p>
+
+<h2>5. Changes</h2>
+<p>If this policy changes, the “Last updated” date above will change with it.</p>
+
+<h2>6. Contact</h2>
+<p>Questions or requests: open an issue at <a href="https://github.com/appdeveloper365/quizmastermind/issues" rel="noopener">github.com/appdeveloper365/quizmastermind/issues</a>.</p>
+
+<footer><a href="./">← Back to Quiz Mastermind</a></footer>
+</body>
+</html>

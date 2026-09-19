@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Cline: auto-fallback run (prompt)",
+      "type": "shell",
+      "command": "node \"${workspaceFolder}/auto-cline.mjs\" \"${input:clinePrompt}\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "Best-first ClinePass chain with auto fallback on 402/429. Needs .env with CLINE_API_KEY."
+    },
+    {
+      "label": "Cline: auto-fallback run (quick hello test)",
+      "type": "shell",
+      "command": "node \"${workspaceFolder}/auto-cline.mjs\" \"say hello test please\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": [],
+      "detail": "Smoke test: tries kimi-k3 first, falls back automatically."
+    },
+    {
+      "label": "Cline: check harness syntax",
+      "type": "shell",
+      "command": "node --check \"${workspaceFolder}/auto-cline.mjs\"",
+      "presentation": { "reveal": "silent", "panel": "shared" },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "clinePrompt",
+      "type": "promptString",
+      "description": "Task for the Cline auto-fallback harness (multi-word prompt)",
+      "default": "List the workspace files and summarize what this QuizMastermind project needs next"
+    }
+  ]
+}

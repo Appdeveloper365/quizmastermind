@@ -6,3 +6,4 @@ dist/
 legacy/
 .clinerules
 .cline/
+.aider*

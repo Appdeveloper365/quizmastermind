@@ -1,0 +1,3 @@
+name = "quizmastermind-nvidia-proxy"
+main = "nvidia-cors-proxy.js"
+compatibility_date = "2026-09-01"

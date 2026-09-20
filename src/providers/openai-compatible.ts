@@ -81,9 +81,13 @@ export class OpenAICompatibleProvider implements QuizProvider {
   }
 }
 
+/** App identification headers — attribute usage to the app in provider dashboards (ignored by providers that don't use them). */
+const appIdentity = (): Record<string, string> => ({ "HTTP-Referer": location.origin, "X-Title": "Quiz Mastermind" });
+
 export const GROQ_CFG: CompatConfig = {
   id: "groq", label: providerLabel(BYOK.groq),
   endpoint: "https://api.groq.com/openai/v1/chat/completions", model: BYOK.groq.model, jsonMode: "json_object",
+  extraHeaders: appIdentity(),
 };
 /** NVIDIA blocks direct browser calls (CORS) — the app routes through the user's own Cloudflare Worker pass-through proxy (cloudflare/ in the repo). */
 export const NVIDIA_PROXY_URL_KEY = "quiz.nvidiaProxy";
@@ -95,10 +99,12 @@ export function saveNvidiaProxy(url: string): void { try { localStorage.setItem(
 export const makeNvidiaCfg = (): CompatConfig => ({
   id: "nvidia", label: providerLabel(BYOK.nvidia),
   endpoint: loadNvidiaProxy() || DEFAULT_NVIDIA_PROXY || NVIDIA_UPSTREAM, model: BYOK.nvidia.model, jsonMode: "json_object",
+  extraHeaders: appIdentity(),
 });
 export const XAI_CFG: CompatConfig = {
   id: "xai", label: providerLabel(BYOK.xai),
   endpoint: "https://api.x.ai/v1/chat/completions", model: BYOK.xai.model, jsonMode: "json_object",
+  extraHeaders: appIdentity(),
 };
 export const OPENROUTER_CFG: CompatConfig = {
   id: "openrouter", label: providerLabel(BYOK.openrouter),

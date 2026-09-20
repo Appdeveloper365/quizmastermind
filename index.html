@@ -8,10 +8,10 @@
   <style>
     .logo-stage{transition:transform .4s ease;display:flex;flex-direction:column;align-items:center}
     .logo-stage:hover{transform:perspective(700px) rotateY(-4deg) rotateX(4deg)}
-    .logo-well{width:100%;max-width:180px;aspect-ratio:1/1;border-radius:22px;padding:8px;background:linear-gradient(135deg,#f9fafb,#e5e7eb);box-shadow:0 12px 28px rgba(0,0,0,.3),0 0 0 1px rgba(99,102,241,.25)}
-    .logo-image{width:100%;height:100%;object-fit:cover;border-radius:18px;display:block}
-    .logo-fallback{width:100%;height:100%;border-radius:18px;background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);color:#fff;display:flex;align-items:center;justify-content:center}
-    .logo-svg-fallback{width:58%;height:58%;display:block}
+    .logo-well{width:100%;max-width:180px;aspect-ratio:1/1;border-radius:14px;padding:0;background:transparent;box-shadow:0 10px 24px rgba(0,0,0,.28),0 0 0 1px rgba(99,102,241,.22);border:2.5px solid #000}
+    .logo-image{width:100%;height:100%;object-fit:cover;border-radius:12px;display:block;border:2.5px solid #000}
+    .logo-fallback{width:100%;height:100%;border-radius:12px;background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);color:#fff;display:flex;align-items:center;justify-content:center;border:2.5px solid #000}
+    .logo-svg-fallback{width:56%;height:56%;display:block}
     .title-gradient{background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.5rem;font-weight:700}
     .tagline{color:#6b7280;font-size:.75rem;margin-top:.2rem}
     .deco{position:absolute;width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px 2px rgba(16,185,129,.85)}
@@ -29,10 +29,10 @@
     @media (min-width:561px) and (max-width:900px){
       :root{--logo-well:132px;--logo-radius:18px}
     }
-    .logo-well{width:var(--logo-well);height:var(--logo-well);border-radius:var(--logo-radius)}
-    .logo-image{border-radius:var(--logo-radius)}
-    .logo-fallback{border-radius:var(--logo-radius)}
-    .logo-svg-fallback{border-radius:var(--logo-radius)}
+    .logo-well{width:var(--logo-well);height:var(--logo-well);border-radius:14px;padding:0;background:transparent;box-shadow:0 10px 24px rgba(0,0,0,.28),0 0 0 1px rgba(99,102,241,.22);border:2.5px solid #000}
+    .logo-image{border-radius:12px;border:2.5px solid #000}
+    .logo-fallback{border-radius:12px;border:2.5px solid #000}
+    .logo-svg-fallback{border-radius:12px}
 
     @keyframes pulse{
       0%,100%{box-shadow:0 0 6px 2px rgba(16,185,129,.55)}

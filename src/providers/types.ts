@@ -35,10 +35,8 @@ export function shapeHint(schema: any): string {
 
 export async function mapHttpError(res: Response): Promise<ProviderError> {
   // Providers disagree on error shape:
-  //   OpenAI/Groq/OpenRouter : { error: { message, type, code } }
-  //   Cerebras               : { message, type, param, code }        <- top-level message
-  //   Gemini                 : { error: { code, message, status } }
-  //   Cline                  : varies; may be { error: "..." } or plain text
+  //   OpenAI/Groq/OpenRouter/NVIDIA/xAI : { error: { message, type, code } }
+  //   Gemini                            : { error: { code, message, status } }
   const raw = await res.text().catch(() => "");
   let body: any = null;
   try { body = JSON.parse(raw); } catch { /* non-JSON (HTML/plain text) */ }

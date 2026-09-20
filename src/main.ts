@@ -3,9 +3,8 @@ import { selectProvider, type ProviderChoice } from "./quiz/select";
 import { keyStore } from "./storage/keys";
 import { loadStats, saveStats } from "./storage/game";
 import { ProviderError } from "./providers/types";
-import { BYOK, BYOK_IDS, quickLabel, settingsLabel, type ByokId } from "./providers/registry";
+import { BYOK, BYOK_IDS, quickLabel, settingsLabel, FREE_KEY_PORTAL, type ByokId } from "./providers/registry";
 import { PuterProvider } from "./providers/puter";
-import { CLINE_MODELS, loadClineModel, saveClineModel, CLINE_ENDPOINT } from "./providers/cline";
 import { makeByokFor } from "./quiz/select";
 import type { Difficulty } from "./quiz/prompt";
 import type { QuizQuestion } from "./quiz/schema";
@@ -43,8 +42,6 @@ const reuse = $<HTMLInputElement>("reuse");
 const nextBar = $("nextBar"), nextBtn = $<HTMLButtonElement>("nextBtn"), nextFill = $("nextFill");
 const autoNext = $<HTMLInputElement>("autoNext"), autoNextPref = $<HTMLInputElement>("autoNextPref");
 const puterBadge = $("puterBadge");
-const clineModelSel = $<HTMLSelectElement>("clineModel");
-const clineModelField = $("clineModelField");
 
 /* ---------- State ---------- */
 let engine: QuizEngine | null = null;
@@ -99,18 +96,12 @@ function renderPortalHint() {
   if (!p) return;
   $("portalHint").innerHTML =
     `👉 Get your ${p.name} key here: <a href="${p.portalUrl}" target="_blank" rel="noopener"><b>${p.portalName}</b> (${p.portalUrl.replace(/^https?:\/\//, "")})</a>` +
-    `<br>${p.steps}<br><span style="color:#888">Model used: <code>${p.model}</code></span>`;
+    `<br>${p.steps}` +
+    `<br>🎁 One-stop shop for free API keys: <a href="${FREE_KEY_PORTAL.url}" target="_blank" rel="noopener"><b>${FREE_KEY_PORTAL.name}</b></a>`;
   $<HTMLInputElement>("keyInput").placeholder = p.keyPrefix;
-  // Cline lets you pick which cline-pass model the single key talks to.
-  clineModelField.hidden = keySelect.value !== "cline";
 }
 keySelect.onchange = renderPortalHint;
 
-/* ---------- Cline model chooser ---------- */
-for (const m of CLINE_MODELS) clineModelSel.add(new Option(`${m.id} — ${m.note}`, m.id));
-clineModelSel.value = loadClineModel();
-clineModelSel.onchange = () => { saveClineModel(clineModelSel.value); engine = null; cancelPrefetch(); };
-clineModelField.title = `Endpoint: ${CLINE_ENDPOINT}`;
 renderPortalHint();
 
 function renderProviderNote() {

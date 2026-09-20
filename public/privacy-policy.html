@@ -25,7 +25,7 @@ AI provider <em>you</em> chose — using <em>your</em> API key — under that pr
 
 <h2>1. What we store (only on your device)</h2>
 <ul>
-  <li><strong>AI provider keys</strong> (Gemini, Groq, Cerebras, OpenRouter, Cline): stored in your browser's <code>localStorage</code>, encrypted with AES-GCM using a PIN that only you know. The plaintext key never leaves your device except to call the provider you selected.</li>
+  <li><strong>AI provider keys</strong> (Gemini, Groq, OpenRouter, NVIDIA, xAI): stored in your browser's <code>localStorage</code>, encrypted with AES-GCM using a PIN that only you know. The plaintext key never leaves your device except to call the provider you selected.</li>
   <li><strong>Quiz data</strong>: your score, streak, history and which questions you've already seen (so they don't repeat) are kept in <code>localStorage</code> and <code>IndexedDB</code> on your device.</li>
   <li><strong>Preferences</strong>: topic, difficulty and provider choices.</li>
 </ul>
@@ -36,9 +36,9 @@ AI provider <em>you</em> chose — using <em>your</em> API key — under that pr
 <ul>
   <li><strong>Google Gemini</strong> — data handled under Google's terms: <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a></li>
   <li><strong>Groq</strong> — <a href="https://groq.com/privacy-policy/" rel="noopener">groq.com/privacy-policy</a></li>
-  <li><strong>Cerebras</strong> — <a href="https://www.cerebras.ai/privacy-policy" rel="noopener">cerebras.ai/privacy-policy</a></li>
   <li><strong>OpenRouter</strong> — <a href="https://openrouter.ai/privacy" rel="noopener">openrouter.ai/privacy</a></li>
-  <li><strong>Cline API</strong> — <a href="https://cline.bot/privacy" rel="noopener">cline.bot/privacy</a></li>
+  <li><strong>NVIDIA</strong> — <a href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/" rel="noopener">nvidia.com privacy policy</a></li>
+  <li><strong>xAI</strong> — <a href="https://x.ai/legal/privacy-policy" rel="noopener">x.ai/legal/privacy-policy</a></li>
   <li><strong>Puter (optional)</strong> — AI calls run under <em>your</em> Puter account via <a href="https://puter.com" rel="noopener">puter.com</a> (“user-pays”); Puter's policy: <a href="https://puter.com/privacy" rel="noopener">puter.com/privacy</a></li>
 </ul>
 <p>Requests go directly from your browser to the provider. They do not pass through any server operated by Quiz Mastermind (there isn't one).</p>

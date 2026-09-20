@@ -1,8 +1,7 @@
 import { ProviderError, type QuizProvider } from "../providers/types";
 import { GeminiProvider } from "../providers/gemini";
-import { OpenAICompatibleProvider, GROQ_CFG, CEREBRAS_CFG, OPENROUTER_CFG } from "../providers/openai-compatible";
+import { OpenAICompatibleProvider, GROQ_CFG, OPENROUTER_CFG, NVIDIA_CFG, XAI_CFG } from "../providers/openai-compatible";
 import { PuterProvider } from "../providers/puter";
-import { makeClineProvider, loadClineModel, loadClineEndpoint } from "../providers/cline";
 import { BYOK_IDS, isByokId, type ByokId } from "../providers/registry";
 import { keyStore } from "../storage/keys";
 
@@ -17,9 +16,9 @@ function makeByok(id: ByokId, key: string): QuizProvider {
   switch (id) {
     case "gemini":     return new GeminiProvider(key);
     case "groq":       return new OpenAICompatibleProvider(key, GROQ_CFG);
-    case "cerebras":   return new OpenAICompatibleProvider(key, CEREBRAS_CFG);
     case "openrouter": return new OpenAICompatibleProvider(key, OPENROUTER_CFG);
-    case "cline":      return makeClineProvider(key, loadClineModel(), loadClineEndpoint());
+    case "nvidia":     return new OpenAICompatibleProvider(key, NVIDIA_CFG);
+    case "xai":        return new OpenAICompatibleProvider(key, XAI_CFG);
   }
 }
 

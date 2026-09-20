@@ -1,12 +1,12 @@
 /** Single source of truth for remote providers + models. Order = dropdown order = Auto priority. */
-export type ByokId = "gemini" | "groq" | "cerebras" | "openrouter" | "cline";
+export type ByokId = "gemini" | "groq" | "openrouter" | "nvidia" | "xai";
 
 export interface ByokInfo { id: ByokId; name: string; model: string; portalName: string; portalUrl: string; keyPrefix: string; steps: string; }
 
 export const BYOK: Record<ByokId, ByokInfo> = {
   gemini: {
     id: "gemini", name: "Gemini", model: "gemini-2.5-flash",
-    portalName: "Google AI Studio", portalUrl: "https://aistudio.google.com/apikey", keyPrefix: "AIza...",
+    portalName: "Google AI Studio", portalUrl: "https://aistudio.google.com/", keyPrefix: "AIza...",
     steps: "Sign in with your Google account → “Create API key” → copy it. Free tier, no card needed.",
   },
   groq: {
@@ -14,26 +14,30 @@ export const BYOK: Record<ByokId, ByokInfo> = {
     portalName: "Groq Console", portalUrl: "https://console.groq.com/keys", keyPrefix: "gsk_...",
     steps: "Sign in (Google/GitHub/email) → “Create API Key” → copy it. Free tier, very fast.",
   },
-  cerebras: {
-    id: "cerebras", name: "Cerebras", model: "qwen-3-32b",
-    portalName: "Cerebras Cloud", portalUrl: "https://cloud.cerebras.ai/", keyPrefix: "csk-...",
-    steps: "Sign in → API Keys → “Create key” → copy it. Free tier: ~1M tokens/day, extremely fast Qwen 3.",
+  nvidia: {
+    id: "nvidia", name: "NVIDIA NIM", model: "meta/llama-3.3-70b-instruct",
+    portalName: "NVIDIA Build", portalUrl: "https://build.nvidia.com/settings/api-keys", keyPrefix: "nvapi-...",
+    steps: "Sign in → API Keys → “Generate API Key” → copy it. Free credits included.",
   },
   openrouter: {
     id: "openrouter", name: "OpenRouter", model: "qwen/qwen3-235b-a22b:free",
-    portalName: "OpenRouter", portalUrl: "https://openrouter.ai/settings/keys", keyPrefix: "sk-or-v1-...",
-    steps: "Sign in → “Create Key” → copy it. Free Qwen 3 model by default (≈50 requests/day without credits).",
+    portalName: "OpenRouter", portalUrl: "https://openrouter.ai/workspaces/default/keys", keyPrefix: "sk-or-v1-...",
+    steps: "Sign in → “Create Key” → copy it. Hundreds of models — free ones included.",
   },
-  cline: {
-    id: "cline", name: "Cline", model: "cline-pass/glm-5.3",
-    portalName: "Cline API Keys", portalUrl: "https://app.cline.bot/settings/api-keys", keyPrefix: "cline_...",
-    steps: "Sign in at app.cline.bot → Settings → API Keys → “Create API Key” → copy it. One key works for every cline-pass/* model (shared quota).",
+  xai: {
+    id: "xai", name: "xAI", model: "grok-4.6",
+    portalName: "xAI Console", portalUrl: "https://console.x.ai/", keyPrefix: "xai-...",
+    steps: "Sign in → API Keys → “Create API key” → copy it. (xAI is paid — needs credits.)",
   },
 };
 
 export const BYOK_IDS = Object.keys(BYOK) as ByokId[];
 export const isByokId = (s: string): s is ByokId => s in BYOK;
 export const portalDomain = (i: ByokInfo) => i.portalUrl.replace(/^https?:\/\//, "").split("/")[0];
-export const quickLabel = (i: ByokInfo) => `${i.name} · ${i.model}`;
-export const settingsLabel = (i: ByokInfo) => `${i.name} (${portalDomain(i)}) — free tier · model: ${i.model}`;
-export const providerLabel = (i: ByokInfo) => `${i.name} · ${i.model} (your key)`;
+/** Labels intentionally show only provider names — no specific model ids in the UI. */
+export const quickLabel = (i: ByokInfo) => i.name;
+export const settingsLabel = (i: ByokInfo) => `${i.name} (${portalDomain(i)})`;
+export const providerLabel = (i: ByokInfo) => `${i.name} (your key)`;
+
+/** One-stop shop listing many free-tier API providers in one place. */
+export const FREE_KEY_PORTAL = { name: "freellm.net", url: "https://freellm.net/" };

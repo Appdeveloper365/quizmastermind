@@ -10,7 +10,7 @@ export interface CompatConfig {
   extraBody?: Record<string, unknown>;
 }
 
-/** Generic OpenAI-compatible chat/completions: Groq, Cerebras, OpenRouter. */
+/** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, NVIDIA NIM, xAI. */
 export class OpenAICompatibleProvider implements QuizProvider {
   readonly id: ByokId; readonly label: string;
   constructor(private apiKey: string, private cfg: CompatConfig) { this.id = cfg.id; this.label = cfg.label; }
@@ -85,9 +85,13 @@ export const GROQ_CFG: CompatConfig = {
   id: "groq", label: providerLabel(BYOK.groq),
   endpoint: "https://api.groq.com/openai/v1/chat/completions", model: BYOK.groq.model, jsonMode: "json_object",
 };
-export const CEREBRAS_CFG: CompatConfig = {
-  id: "cerebras", label: providerLabel(BYOK.cerebras),
-  endpoint: "https://api.cerebras.ai/v1/chat/completions", model: BYOK.cerebras.model, jsonMode: "json_schema",
+export const NVIDIA_CFG: CompatConfig = {
+  id: "nvidia", label: providerLabel(BYOK.nvidia),
+  endpoint: "https://integrate.api.nvidia.com/v1/chat/completions", model: BYOK.nvidia.model, jsonMode: "json_object",
+};
+export const XAI_CFG: CompatConfig = {
+  id: "xai", label: providerLabel(BYOK.xai),
+  endpoint: "https://api.x.ai/v1/chat/completions", model: BYOK.xai.model, jsonMode: "json_object",
 };
 export const OPENROUTER_CFG: CompatConfig = {
   id: "openrouter", label: providerLabel(BYOK.openrouter),

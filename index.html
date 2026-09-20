@@ -123,7 +123,7 @@
       </div>
 
       <div class="field">
-        <label for="provider"><b>AI provider &amp; model</b></label>
+        <label for="provider"><b>AI provider</b></label>
         <select id="provider">
           <option value="auto">✨ Auto — your saved key if any, otherwise Puter when signed in</option>
           <optgroup label="☁️ Free cloud — sign in, no API key">
@@ -159,14 +159,9 @@
         <!-- ---------- KEY TAB ---------- -->
         <section id="tab-key" class="tabpane" hidden>
           <div class="field">
-            <label for="keyProvider"><b>1. Provider &amp; model</b></label>
+            <label for="keyProvider"><b>1. Choose provider</b></label>
             <select id="keyProvider"></select>
             <small class="hint" id="portalHint"></small>
-          </div>
-          <div class="field" id="clineModelField" hidden>
-            <label for="clineModel"><b>Cline model</b></label>
-            <select id="clineModel"></select>
-            <small class="hint">One key works for every <code>cline-pass/*</code> model (shared quota). Pick whichever is fastest/strongest for you.</small>
           </div>
           <div class="field">
             <label for="pinInput"><b>2. Create your own lock PIN</b></label>

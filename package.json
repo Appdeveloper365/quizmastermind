@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.1.0",
   "type": "module",
-  "description": "Quiz Mastermind — Vite/TS quiz app (Cerebras/Groq/Gemini/OpenRouter + Ollama local GPU) with Cline auto-run harness scripts preserved",
+  "description": "Quiz Mastermind — Vite/TS quiz app (Gemini/Groq/OpenRouter/NVIDIA/xAI + Ollama local GPU) with Cline auto-run harness scripts preserved",
   "engines": {
     "node": ">=22"
   },

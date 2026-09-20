@@ -88,11 +88,13 @@ export const GROQ_CFG: CompatConfig = {
 /** NVIDIA blocks direct browser calls (CORS) — the app routes through the user's own Cloudflare Worker pass-through proxy (cloudflare/ in the repo). */
 export const NVIDIA_PROXY_URL_KEY = "quiz.nvidiaProxy";
 export const NVIDIA_UPSTREAM = "https://integrate.api.nvidia.com/v1/chat/completions";
+/** Default pass-through worker (repo cloudflare/nvidia-cors-proxy.js) — preconfigured so NVIDIA works out of the box. */
+export const DEFAULT_NVIDIA_PROXY = "https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev";
 export function loadNvidiaProxy(): string { try { return localStorage.getItem(NVIDIA_PROXY_URL_KEY)?.trim() ?? ""; } catch { return ""; } }
 export function saveNvidiaProxy(url: string): void { try { localStorage.setItem(NVIDIA_PROXY_URL_KEY, url.trim()); } catch { /* storage unavailable */ } }
 export const makeNvidiaCfg = (): CompatConfig => ({
   id: "nvidia", label: providerLabel(BYOK.nvidia),
-  endpoint: loadNvidiaProxy() || NVIDIA_UPSTREAM, model: BYOK.nvidia.model, jsonMode: "json_object",
+  endpoint: loadNvidiaProxy() || DEFAULT_NVIDIA_PROXY || NVIDIA_UPSTREAM, model: BYOK.nvidia.model, jsonMode: "json_object",
 });
 export const XAI_CFG: CompatConfig = {
   id: "xai", label: providerLabel(BYOK.xai),

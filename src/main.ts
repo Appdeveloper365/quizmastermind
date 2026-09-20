@@ -5,7 +5,7 @@ import { loadStats, saveStats } from "./storage/game";
 import { ProviderError } from "./providers/types";
 import { BYOK, BYOK_IDS, quickLabel, settingsLabel, FREE_KEY_PORTAL, type ByokId } from "./providers/registry";
 import { PuterProvider } from "./providers/puter";
-import { loadNvidiaProxy, saveNvidiaProxy } from "./providers/openai-compatible";
+import { DEFAULT_NVIDIA_PROXY, loadNvidiaProxy, saveNvidiaProxy } from "./providers/openai-compatible";
 import { makeByokFor } from "./quiz/select";
 import type { Difficulty } from "./quiz/prompt";
 import type { QuizQuestion } from "./quiz/schema";
@@ -105,7 +105,7 @@ function renderPortalHint() {
   nvidiaProxyField.hidden = keySelect.value !== "nvidia";
 }
 keySelect.onchange = renderPortalHint;
-nvidiaProxyInput.value = loadNvidiaProxy();
+nvidiaProxyInput.value = loadNvidiaProxy() || DEFAULT_NVIDIA_PROXY;
 nvidiaProxyInput.onchange = () => { saveNvidiaProxy(nvidiaProxyInput.value.trim()); engine = null; cancelPrefetch(); };
 
 renderPortalHint();
@@ -336,7 +336,7 @@ $("saveClose").onclick = async () => {
   const key = $<HTMLInputElement>("keyInput").value.trim(), pin = $<HTMLInputElement>("pinInput").value;
   if (!key) return status(`Step 3: paste your ${info.name} API key first (get it from ${info.portalName}).`);
   if (pin.length < 4) return status("Step 2: create a lock PIN of at least 4 digits.");
-  if (id === "nvidia" && !loadNvidiaProxy()) return status("NVIDIA also needs its proxy URL (step 1b): deploy the free worker once (README → “NVIDIA proxy setup”), then paste its https://…workers.dev URL there.");
+  if (id === "nvidia" && !loadNvidiaProxy() && !DEFAULT_NVIDIA_PROXY) return status("NVIDIA also needs its proxy URL (step 1b): deploy the free worker once (README → “NVIDIA proxy setup”), then paste its https://…workers.dev URL there.");
   await keyStore.save(id, key, pin); pinCache.set(id, pin);
   $<HTMLInputElement>("keyInput").value = ""; $<HTMLInputElement>("pinInput").value = "";
   providerSelect.value = id; localStorage.setItem("quiz.provider", id); engine = null; cancelPrefetch();

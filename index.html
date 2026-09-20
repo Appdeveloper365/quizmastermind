@@ -163,10 +163,15 @@
             <select id="keyProvider"></select>
             <small class="hint" id="portalHint"></small>
           </div>
-          <div class="field" id="nvidiaProxyField" hidden>
-            <label for="nvidiaProxyInput"><b>1b. NVIDIA proxy URL</b></label>
-            <input id="nvidiaProxyInput" type="url" autocomplete="off" placeholder="https://quizmastermind-nvidia-proxy.your-subdomain.workers.dev" />
-            <small class="hint">NVIDIA blocks direct browser calls (CORS), so its calls go through your own tiny Cloudflare Worker pass-through proxy. One-time free setup: run <code>npx wrangler login</code> then <code>npx wrangler deploy</code> inside the repo's <code>cloudflare/</code> folder (see README → “NVIDIA proxy setup”), then paste the <code>https://…workers.dev</code> URL here. Your key is only forwarded through your worker to NVIDIA — never stored anywhere.</small>
+          <div id="nvidiaProxyField" hidden>
+            <details>
+              <summary style="cursor:pointer;color:#666"><small>Advanced — NVIDIA proxy URL (preconfigured; only change if you deploy your own worker)</small></summary>
+              <div class="field">
+                <label for="nvidiaProxyInput"><b>NVIDIA proxy URL</b></label>
+                <input id="nvidiaProxyInput" type="url" autocomplete="off" placeholder="https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev" />
+                <small class="hint">NVIDIA blocks direct browser calls (CORS), so its calls are forwarded through a tiny Cloudflare Worker pass-through proxy. A shared default is built in — you normally don't need to touch this. Your key is only forwarded to NVIDIA — never stored anywhere.</small>
+              </div>
+            </details>
           </div>
           <div class="field">
             <label for="pinInput"><b>2. Create your own lock PIN</b></label>

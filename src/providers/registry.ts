@@ -17,7 +17,7 @@ export const BYOK: Record<ByokId, ByokInfo> = {
   nvidia: {
     id: "nvidia", name: "NVIDIA NIM", model: "meta/llama-3.3-70b-instruct",
     portalName: "NVIDIA Build", portalUrl: "https://build.nvidia.com/settings/api-keys", keyPrefix: "nvapi-...",
-    steps: "Free credits from build.nvidia.com. NVIDIA blocks direct browser calls (CORS), so also deploy the free pass-through worker once (README → “NVIDIA proxy setup”) and paste its URL in step 1b.",
+    steps: "Free credits from build.nvidia.com → API Keys → “Generate API Key” → copy it. (Calls are routed through a preconfigured pass-through proxy automatically — no setup needed.)",
   },
   openrouter: {
     id: "openrouter", name: "OpenRouter", model: "qwen/qwen3-235b-a22b:free",

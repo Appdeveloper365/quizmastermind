@@ -46,6 +46,7 @@
     body{font-family:system-ui;max-width:980px;margin:2rem auto;padding:0 1rem;line-height:1.4}
     h1{margin:.2rem 0 .6rem}h1 small{font-size:.5em;color:#777;font-weight:400;margin-left:.5rem}
     button{padding:.6rem 1rem;margin:.25rem 0;width:100%;text-align:left;cursor:pointer}
+    input:disabled{background:#f1f1f1;color:#777;border-color:#ddd;cursor:not-allowed}
     button.correct{background:#c8f7c5}button.wrong{background:#f7c5c5}button:disabled{cursor:default}
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1}
     #status{font-size:.9rem;color:#555}#explain{margin-top:1rem;padding:.75rem;background:#f4f4f4;display:none}
@@ -156,39 +157,33 @@
           <small class="hint">No model to pick — Puter chooses one automatically on their end. All this app needs is for Puter to <b>recognize the connection</b>: sign in, then press <b>Test connection</b>. (If you skip signing in here, Puter pops its own sign-in on the first question.)</small>
         </section>
 
-        <!-- ---------- KEY TAB ---------- -->
+        <!-- ---------- KEY TAB (bound to the single menu above) ---------- -->
         <section id="tab-key" class="tabpane" hidden>
-          <div class="field">
-            <label for="keyProvider"><b>1. Choose provider</b></label>
-            <select id="keyProvider"></select>
-            <small class="hint" id="portalHint"></small>
+          <small class="hint" id="portalHint"></small>
+          <div id="byokUi" hidden>
+            <div id="nvidiaProxyField" hidden>
+              <details>
+                <summary style="cursor:pointer;color:#666"><small>Advanced — NVIDIA proxy URL (preconfigured; only change if you deploy your own worker)</small></summary>
+                <div class="field">
+                  <label for="nvidiaProxyInput"><b>NVIDIA proxy URL</b></label>
+                  <input id="nvidiaProxyInput" type="url" autocomplete="off" placeholder="https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev" />
+                  <small class="hint">NVIDIA blocks direct browser calls (CORS), so its calls are forwarded through a tiny Cloudflare Worker pass-through proxy. A shared default is built in — you normally don't need to touch this. Your key is only forwarded to NVIDIA — never stored anywhere.</small>
+                </div>
+              </details>
+            </div>
+            <div class="field">
+              <label for="keyInput"><b>Paste your API key</b></label>
+              <input id="keyInput" type="password" autocomplete="off" placeholder="AIza..." />
+              <small class="hint" id="keyFieldHint"></small>
+            </div>
+            <div class="row">
+              <button id="saveClose" class="primary" style="width:auto">💾 Save &amp; close settings</button>
+              <button id="replaceKey" style="width:auto" hidden>✏️ Replace key</button>
+              <button id="testKey" style="width:auto">🔌 Test connection</button>
+              <button id="clearKey" style="width:auto">🗑 Clear this key</button>
+            </div>
+            <small class="hint" id="testResult"></small>
           </div>
-          <div id="nvidiaProxyField" hidden>
-            <details>
-              <summary style="cursor:pointer;color:#666"><small>Advanced — NVIDIA proxy URL (preconfigured; only change if you deploy your own worker)</small></summary>
-              <div class="field">
-                <label for="nvidiaProxyInput"><b>NVIDIA proxy URL</b></label>
-                <input id="nvidiaProxyInput" type="url" autocomplete="off" placeholder="https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev" />
-                <small class="hint">NVIDIA blocks direct browser calls (CORS), so its calls are forwarded through a tiny Cloudflare Worker pass-through proxy. A shared default is built in — you normally don't need to touch this. Your key is only forwarded to NVIDIA — never stored anywhere.</small>
-              </div>
-            </details>
-          </div>
-          <div class="field">
-            <label for="pinInput"><b>2. Create your own lock PIN</b></label>
-            <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="e.g. 4 digits" minlength="4" />
-            <small class="hint">Make up any 4+ digit PIN. It is <b>not</b> from the AI provider — it only locks the key on this device. Forgot it? Clear and re-save the key.</small>
-          </div>
-          <div class="field">
-            <label for="keyInput"><b>3. Paste your API key</b></label>
-            <input id="keyInput" type="password" autocomplete="off" placeholder="AIza..." />
-            <small class="hint">It never leaves this device.</small>
-          </div>
-          <div class="row">
-            <button id="saveClose" class="primary" style="width:auto">💾 Save &amp; close settings</button>
-            <button id="testKey" style="width:auto">🔌 Test connection</button>
-            <button id="clearKey" style="width:auto">🗑 Clear this key</button>
-          </div>
-          <small class="hint" id="testResult"></small>
         </section>
 
         <hr style="border:0;border-top:1px solid #eee;margin:.9rem 0" />

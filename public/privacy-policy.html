@@ -25,7 +25,7 @@ AI provider <em>you</em> chose — using <em>your</em> API key — under that pr
 
 <h2>1. What we store (only on your device)</h2>
 <ul>
-  <li><strong>AI provider keys</strong> (Gemini, Groq, OpenRouter, NVIDIA, xAI): stored in your browser's <code>localStorage</code>, encrypted with AES-GCM using a PIN that only you know. The plaintext key never leaves your device except to call the provider you selected.</li>
+  <li><strong>AI provider keys</strong> (Gemini, Groq, OpenRouter, NVIDIA, xAI): stored in your browser's <code>localStorage</code> (kept on this device only, shown masked in the app — no lock PIN needed). The plaintext key never leaves your device except to call the provider you selected.</li>
   <li><strong>Quiz data</strong>: your score, streak, history and which questions you've already seen (so they don't repeat) are kept in <code>localStorage</code> and <code>IndexedDB</code> on your device.</li>
   <li><strong>Preferences</strong>: topic, difficulty and provider choices.</li>
 </ul>

@@ -62,6 +62,6 @@ then open AI settings → Use my API key → NVIDIA → expand "Advanced — NVI
 
 ## Privacy policy
 
-public/privacy-policy.html — local PIN-encrypted keys, IndexedDB quiz history, prompts go only
+public/privacy-policy.html — local API keys (PIN-free, masked in the UI), IndexedDB quiz history, prompts go only
 to your chosen AI provider under its own policy. No analytics, ads, accounts on this site.
 

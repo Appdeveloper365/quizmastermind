@@ -15,7 +15,7 @@ export const BYOK: Record<ByokId, ByokInfo> = {
     steps: "Sign in (Google/GitHub/email) → “Create API Key” → copy it. Free tier, very fast.",
   },
   nvidia: {
-    id: "nvidia", name: "NVIDIA NIM", model: "meta/llama-3.3-70b-instruct",
+    id: "nvidia", name: "NVIDIA NIM", model: "nvidia/nemotron-3.5-lightning-30b-a3b",
     portalName: "NVIDIA Build", portalUrl: "https://build.nvidia.com/settings/api-keys", keyPrefix: "nvapi-...",
     steps: "Free credits from build.nvidia.com → API Keys → “Generate API Key” → copy it. (Calls are routed through a preconfigured pass-through proxy automatically — no setup needed.)",
   },

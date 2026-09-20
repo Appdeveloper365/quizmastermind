@@ -86,7 +86,7 @@
   </style>
 </head>
 <body>
-  <!-- App Logo: generated Einstein Quizmaster image -->
+  <!-- App Logo -->
   <div class="logo-stage relative flex flex-col items-center select-none">
     <div class="logo-well">
       <img
@@ -96,103 +96,79 @@
         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
       />
       <div class="logo-fallback" style="display:none">
-        <svg class="logo-svg-fallback" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-label="Quiz Mastermind Einstein Quizmaster logo fallback">
+        <svg class="logo-svg-fallback" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-label="Quiz Mastermind app logo fallback">
           <defs>
-            <linearGradient id="fbBg" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0" stop-color="#6366f1"/>
-              <stop offset="1" stop-color="#4f46e5"/>
-            </linearGradient>
-            <linearGradient id="fbSuit" x1="0" x2="0" y1="0" y2="1">
+            <linearGradient id="qbShine" x1="0" x2="1" y1="0" y2="1">
               <stop offset="0" stop-color="#1e3a8a"/>
-              <stop offset="1" stop-color="#172554"/>
+              <stop offset=".5" stop-color="#172554"/>
+              <stop offset="1" stop-color="#0b1642"/>
             </linearGradient>
-            <radialGradient id="fbSkin" cx="0.5" cy="0.36" r="0.66">
-              <stop offset="0" stop-color="#f7e9d6"/>
-              <stop offset="1" stop-color="#caa684"/>
+            <linearGradient id="qgGold" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="#f7d97e"/>
+              <stop offset=".5" stop-color="#d4a017"/>
+              <stop offset="1" stop-color="#9c6f12"/>
+            </linearGradient>
+            <linearGradient id="qgGold2" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#f9e29c"/>
+              <stop offset="1" stop-color="#b8860b"/>
+            </linearGradient>
+            <linearGradient id="qbBump" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="#2a4fbd"/>
+              <stop offset="1" stop-color="#0a1a4a"/>
+            </linearGradient>
+            <radialGradient id="qbGlow" cx="0.5" cy="0.42" r="0.55">
+              <stop offset="0" stop-color="#ffffff" stop-opacity="0.32"/>
+              <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
             </radialGradient>
-            <radialGradient id="fbHair" cx="0.5" cy="0.3" r="0.7">
-              <stop offset="0" stop-color="#ffffff"/>
-              <stop offset="1" stop-color="#d9d2c2"/>
-            </radialGradient>
+            <filter id="float" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.35"/>
+            </filter>
           </defs>
 
-          <rect x="4" y="4" width="212" height="212" rx="48" fill="url(#fbBg)"/>
-          <rect x="4" y="4" width="212" height="212" rx="48" fill="none" stroke="#fff" stroke-opacity="0.22" stroke-width="2"/>
+          <!-- Stage glow -->
+          <circle cx="110" cy="110" r="116" fill="url(#qbGlow)"/>
 
-          <!-- Shoulders / suit -->
-          <path d="M56 178 Q56 132 110 124 Q164 132 164 178 L164 204 L56 204 Z" fill="url(#fbSuit)"/>
-          <path d="M110 124 L110 204" stroke="#1e40af" stroke-width="1.4"/>
+          <!-- Main dark blue gem/atlas base with 3D facet look -->
+          <g filter="url(#float)">
+            <ellipse cx="110" cy="110" rx="78" ry="74" fill="url(#qbBump)"/>
+            <ellipse cx="110" cy="110" rx="78" ry="74" fill="url(#qbShine)" opacity="0.85"/>
 
-          <!-- Bow tie -->
-          <path d="M100 136 L110 125 L120 136 L110 147 Z" fill="#111827"/>
-          <circle cx="110" cy="136" r="3" fill="#facc15"/>
+            <!-- facet lines -->
+            <path d="M36 108 Q110 86 184 108" stroke="#4f67d6" stroke-width="2" fill="none" opacity="0.55"/>
+            <path d="M36 120 Q110 100 184 120" stroke="#2a3f8a" stroke-width="2" fill="none" opacity="0.55"/>
+            <path d="M36 132 Q110 112 184 132" stroke="#0e1d48" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M54 60 L110 52 L166 62 L120 120 L100 120 L70 72 Z" fill="#0a1a4a" opacity="0.28"/>
 
-          <!-- Neck -->
-          <rect x="96" y="106" width="28" height="24" rx="8" fill="url(#fbSkin)"/>
+            <!-- 3D bevel rim -->
+            <ellipse cx="110" cy="110" rx="78" ry="74" fill="none" stroke="url(#qgGold)" stroke-width="3" opacity="0.85"/>
+            <ellipse cx="110" cy="110" rx="70" ry="66" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.25"/>
+          </g>
 
-          <!-- Head -->
-          <ellipse cx="110" cy="78" rx="34" ry="46" fill="url(#fbSkin)"/>
+          <!-- Gold core ring -->
+          <ellipse cx="110" cy="104" rx="46" ry="42" fill="url(#qgGold)"/>
+          <ellipse cx="110" cy="104" rx="46" ry="42" fill="none" stroke="#7a5410" stroke-width="2"/>
+          <ellipse cx="110" cy="104" rx="38" ry="35" fill="url(#qbShine)" opacity="0.85"/>
+          <ellipse cx="110" cy="100" rx="30" ry="26" fill="#172554"/>
 
-          <!-- Ears -->
-          <ellipse cx="76" cy="82" rx="6" ry="10" fill="#d8bd97"/>
-          <ellipse cx="144" cy="82" rx="6" ry="10" fill="#d8bd97"/>
+          <!-- Gold quizmaster crown/star mark -->
+          <g transform="translate(110 100)">
+            <path d="M0 -26 L6 -9 L24 -9 L9 2 L15 20 L0 9 L-15 20 L-9 2 L-24 -9 L-6 -9 Z"
+                  fill="url(#qgGold2)" stroke="#7a5410" stroke-width="2"/>
+            <circle cx="0" cy="0" r="8" fill="url(#qbShine)" stroke="#ffffff" stroke-width="1.5"/>
+            <circle cx="-2" cy="-2" r="2.4" fill="#ffffff"/>
+            <path d="M-6 -9 L0 -3 L6 -9" stroke="#7a5410" stroke-width="1.5" fill="none"/>
+          </g>
 
-          <!-- Wild Einstein hair -->
-          <path d="M76 70 Q84 14 120 10 Q160 14 162 78 Q148 44 110 36 Q76 44 76 70 Z" fill="url(#fbHair)"/>
-          <path d="M70 74 Q72 36 84 26 Q78 52 72 72 Z" fill="#e6dfd2"/>
-          <path d="M150 74 Q148 36 136 26 Q142 52 148 72 Z" fill="#e6dfd2"/>
-          <path d="M86 18 Q96 2 Q110 4 Q124 2 Q134 18 Q122 10 Q110 12 Q98 10 Q86 18 Z" fill="url(#fbHair)"/>
-          <path d="M124 20 Q118 6 110 8 Q102 6 96 20 Q104 10 110 12 Q118 10 124 20 Z" fill="#e6dfd2"/>
-          <!-- Hair spikes -->
-          <path d="M78 48 Q88 4 120 2 Q154 6 160 52 Q144 22 120 20 Q92 22 78 48 Z" fill="url(#fbHair)" opacity="0.92"/>
-          <path d="M88 12 Q98 -4 110 0 Q122 -4 132 12 Q120 2 110 4 Q100 2 88 12 Z" fill="url(#fbHair)" opacity="0.9"/>
-
-          <!-- Fuller eyebrows -->
-          <path d="M86 66 Q96 54 106 62" stroke="#7a5a36" stroke-width="3.6" fill="none" stroke-linecap="round"/>
-          <path d="M116 62 Q126 54 134 66" stroke="#7a5a36" stroke-width="3.6" fill="none" stroke-linecap="round"/>
-
-          <!-- Eyes (deeper-set) -->
-          <circle cx="92" cy="82" r="5.4" fill="#fff"/>
-          <circle cx="128" cy="82" r="5.4" fill="#fff"/>
-          <circle cx="92" cy="83" r="3" fill="#111827"/>
-          <circle cx="128" cy="83" r="3" fill="#111827"/>
-          <circle cx="93" cy="82" r="1.1" fill="#fff"/>
-          <circle cx="129" cy="82" r="1.1" fill="#fff"/>
-
-          <!-- Longer nose -->
-          <path d="M110 86 L108 110 Q110 113 112 110 Z" stroke="#b08a63" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-
-          <!-- Thicker signature mustache -->
-          <path d="M92 108 Q100 120 110 117 Q120 120 128 108 Q120 114 110 112 Q100 114 92 108 Z" fill="url(#fbHair)"/>
-          <path d="M96 110 Q110 121 124 110" stroke="#cdb89e" stroke-width="1.3" fill="none"/>
-
-          <!-- Cheek lines for age character -->
-          <path d="M78 120 Q84 128 92 120" stroke="#b5936f" stroke-width="1.4" fill="none" opacity="0.75"/>
-          <path d="M128 120 Q136 128 142 120" stroke="#b5936f" stroke-width="1.4" fill="none" opacity="0.75"/>
-
-          <!-- Warm wise smile -->
-          <path d="M94 126 Q110 134 126 126" stroke="#6f4525" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-          <path d="M102 131 Q110 134 118 131" stroke="#6f4525" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-
-          <!-- Headset -->
-          <path d="M76 78 Q110 68 144 78" stroke="#cbd5e1" stroke-width="3" fill="none"/>
-          <circle cx="76" cy="78" r="5.2" fill="#475569"/>
-          <circle cx="144" cy="78" r="5.2" fill="#475569"/>
-          <circle cx="92" cy="88" r="6.6" fill="#111827"/>
-          <rect x="88" y="100" width="8" height="26" rx="3" fill="#334155"/>
-          <path d="M88 100 L92 108 L96 100" stroke="#facc15" stroke-width="1.6" fill="none"/>
-
-          <!-- Subtle glasses hint -->
-          <circle cx="92" cy="82" r="9.4" fill="none" stroke="#a78bfa" stroke-width="1.4" opacity="0.65"/>
-          <circle cx="128" cy="82" r="9.4" fill="none" stroke="#a78bfa" stroke-width="1.4" opacity="0.65"/>
-          <path d="M101 82 L119 82" stroke="#a78bfa" stroke-width="1.4" opacity="0.65"/>
+          <!-- Top highlight reflection -->
+          <ellipse cx="92" cy="86" rx="28" ry="12" fill="#ffffff" opacity="0.18"/>
+          <ellipse cx="110" cy="70" rx="24" ry="6" fill="#ffffff" opacity="0.14"/>
         </svg>
       </div>
     </div>
 
     <div class="logo-title text-center">
       <h1 class="title-gradient">Quiz Mastermind</h1>
-      <p class="tagline">AI-powered trivia • Einstein is hosting</p>
+      <p class="tagline">Dark blue • gold • smart trivia</p>
     </div>
 
     <div class="deco deco-1"></div>

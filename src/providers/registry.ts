@@ -5,7 +5,7 @@ export interface ByokInfo { id: ByokId; name: string; model: string; portalName:
 
 export const BYOK: Record<ByokId, ByokInfo> = {
   gemini: {
-    id: "gemini", name: "Gemini", model: "gemini-2.5-flash",
+    id: "gemini", name: "Gemini", model: "gemini-3.6-flash",
     portalName: "Google AI Studio", portalUrl: "https://aistudio.google.com/", keyPrefix: "AIza...",
     steps: "Sign in with your Google account → “Create API key” → copy it. Free tier, no card needed.",
   },

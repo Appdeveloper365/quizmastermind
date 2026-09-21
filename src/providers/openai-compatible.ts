@@ -8,15 +8,17 @@ export interface CompatConfig {
   jsonMode: "json_schema" | "json_object";
   extraHeaders?: Record<string, string>;
   extraBody?: Record<string, unknown>;
+  /** Appended to the network/CORS error to help the user self-diagnose (e.g. NVIDIA proxy). */
+  networkHint?: string;
 }
 
-/** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, NVIDIA NIM, xAI. */
+/** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, Pollinations, xAI. */
 export class OpenAICompatibleProvider implements QuizProvider {
   readonly id: ByokId; readonly label: string;
   constructor(private apiKey: string, private cfg: CompatConfig) { this.id = cfg.id; this.label = cfg.label; }
 
   async generateRaw(p: GenerateParams): Promise<unknown> {
-    return this.chatJSON(SYSTEM_PROMPT, buildUserPrompt(p) + " /no_think", { strict: QUIZ_JSON_SCHEMA, gemini: QUIZ_GEMINI_SCHEMA, name: "quiz_question" }, { temperature: 0.8, maxTokens: 1500, signal: p.signal });
+    return this.chatJSON(SYSTEM_PROMPT, buildUserPrompt(p) + " /no_think", { strict: QUIZ_JSON_SCHEMA, gemini: QUIZ_GEMINI_SCHEMA, name: "quiz_question" }, { temperature: 1.0, maxTokens: 1500, signal: p.signal });
   }
 
   async chatJSON(system: string, user: string, schemas: JsonSchemas, opts: ChatOpts = {}): Promise<unknown> {
@@ -46,7 +48,8 @@ export class OpenAICompatibleProvider implements QuizProvider {
         });
       } catch (e) {
         if ((e as Error).name === "AbortError") throw e;
-        throw new ProviderError("network", `Couldn't reach ${this.cfg.endpoint} — network, CORS or an ad-blocker. ${(e as Error).message}`);
+        const hint = this.cfg.networkHint ? ` ${this.cfg.networkHint}` : "";
+        throw new ProviderError("network", `Couldn't reach ${this.cfg.endpoint} — network, CORS or an ad-blocker.${hint} ${(e as Error).message}`);
       }
       return res;
     };
@@ -89,21 +92,15 @@ export const GROQ_CFG: CompatConfig = {
   endpoint: "https://api.groq.com/openai/v1/chat/completions", model: BYOK.groq.model, jsonMode: "json_object",
   extraHeaders: appIdentity(),
 };
-/** NVIDIA blocks direct browser calls (CORS) — the app routes through the user's own Cloudflare Worker pass-through proxy (cloudflare/ in the repo). */
-export const NVIDIA_PROXY_URL_KEY = "quiz.nvidiaProxy";
-export const NVIDIA_UPSTREAM = "https://integrate.api.nvidia.com/v1/chat/completions";
-/** Default pass-through worker (repo cloudflare/nvidia-cors-proxy.js) — preconfigured so NVIDIA works out of the box. */
-export const DEFAULT_NVIDIA_PROXY = "https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev";
-export function loadNvidiaProxy(): string { try { return localStorage.getItem(NVIDIA_PROXY_URL_KEY)?.trim() ?? ""; } catch { return ""; } }
-export function saveNvidiaProxy(url: string): void { try { localStorage.setItem(NVIDIA_PROXY_URL_KEY, url.trim()); } catch { /* storage unavailable */ } }
-export const makeNvidiaCfg = (): CompatConfig => ({
-  id: "nvidia", label: providerLabel(BYOK.nvidia),
-  endpoint: loadNvidiaProxy() || DEFAULT_NVIDIA_PROXY || NVIDIA_UPSTREAM, model: BYOK.nvidia.model, jsonMode: "json_object",
-  extraHeaders: appIdentity(),
-});
 export const XAI_CFG: CompatConfig = {
   id: "xai", label: providerLabel(BYOK.xai),
   endpoint: "https://api.x.ai/v1/chat/completions", model: BYOK.xai.model, jsonMode: "json_object",
+  extraHeaders: appIdentity(),
+};
+/** Pollinations — OpenAI-compatible multi-model gateway; free key at enter.pollinations.ai/keys (no card). */
+export const POLLINATIONS_CFG: CompatConfig = {
+  id: "pollinations", label: providerLabel(BYOK.pollinations),
+  endpoint: "https://gen.pollinations.ai/v1/chat/completions", model: BYOK.pollinations.model, jsonMode: "json_object",
   extraHeaders: appIdentity(),
 };
 export const OPENROUTER_CFG: CompatConfig = {

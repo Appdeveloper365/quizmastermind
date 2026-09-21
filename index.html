@@ -124,22 +124,22 @@
       </div>
 
       <div class="field">
-        <label for="provider"><b>AI provider</b></label>
-        <select id="provider">
-          <option value="auto">✨ Auto — your saved key if any, otherwise Puter when signed in</option>
-          <optgroup label="☁️ Free cloud — sign in, no API key">
-            <option value="puter">Puter · auto model (free via your Puter account)</option>
-          </optgroup>
-          <optgroup label="🔑 Remote — your free API key" id="grpByok"></optgroup>
-        </select>
+        <label><b>AI provider</b> — pick one:</label>
+        <div class="row" style="align-items:stretch">
+          <button id="selPuter" class="primary" style="width:auto;flex:1">☁️ Puter <small id="selPuterSub" style="font-weight:400"></small></button>
+          <button id="selRemote" style="width:auto;flex:1">🔑 Use your own API key <small id="selRemoteSub" style="font-weight:400"></small></button>
+          <button id="selLocal" style="width:auto;flex:1">💻 Local AI <small id="selLocalSub" style="font-weight:400"></small></button>
+        </div>
+        <div id="byokList" class="row" style="margin-top:.4rem"></div>
         <small class="hint" id="providerNote"></small>
       </div>
 
       <details id="keySettings">
         <summary id="keySummary">⚙️ AI settings</summary>
         <div class="tabs">
-          <button class="tab active" data-tab="puter">☁️ Puter (sign in)</button>
-          <button class="tab" data-tab="key"> Use my API key</button>
+          <button class="tab active" data-tab="puter">☁️ Puter</button>
+          <button class="tab" data-tab="key">🔑 Remote API key</button>
+          <button class="tab" data-tab="local">💻 Local AI</button>
         </div>
 
         <!-- ---------- PUTER TAB ---------- -->
@@ -157,40 +157,62 @@
           <small class="hint">No model to pick — Puter chooses one automatically on their end. All this app needs is for Puter to <b>recognize the connection</b>: sign in, then press <b>Test connection</b>. (If you skip signing in here, Puter pops its own sign-in on the first question.)</small>
         </section>
 
-        <!-- ---------- KEY TAB (bound to the single menu above) ---------- -->
+        <!-- ---------- REMOTE KEY TAB ---------- -->
         <section id="tab-key" class="tabpane" hidden>
-          <small class="hint" id="portalHint"></small>
-          <div id="byokUi" hidden>
-            <div id="nvidiaProxyField" hidden>
-              <details>
-                <summary style="cursor:pointer;color:#666"><small>Advanced — NVIDIA proxy URL (preconfigured; only change if you deploy your own worker)</small></summary>
-                <div class="field">
-                  <label for="nvidiaProxyInput"><b>NVIDIA proxy URL</b></label>
-                  <input id="nvidiaProxyInput" type="url" autocomplete="off" placeholder="https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev" />
-                  <small class="hint">NVIDIA blocks direct browser calls (CORS), so its calls are forwarded through a tiny Cloudflare Worker pass-through proxy. A shared default is built in — you normally don't need to touch this. Your key is only forwarded to NVIDIA — never stored anywhere.</small>
-                </div>
-              </details>
-            </div>
-            <div class="field">
-              <label for="keyInput"><b>Paste your API key</b></label>
-              <input id="keyInput" type="password" autocomplete="off" placeholder="AIza..." />
-              <small class="hint" id="keyFieldHint"></small>
-            </div>
-            <div class="row">
-              <button id="saveClose" class="primary" style="width:auto">💾 Save &amp; close settings</button>
-              <button id="replaceKey" style="width:auto" hidden>✏️ Replace key</button>
-              <button id="testKey" style="width:auto">🔌 Test connection</button>
-              <button id="clearKey" style="width:auto">🗑 Clear this key</button>
-            </div>
-            <small class="hint" id="testResult"></small>
+          <div class="field">
+            <label for="byokProvider"><b>Provider</b></label>
+            <select id="byokProvider"></select>
+            <small class="hint" id="portalHint"></small>
           </div>
+          <div class="field">
+            <label for="keyInput"><b>Paste your API key</b></label>
+            <input id="keyInput" type="password" autocomplete="off" placeholder="AIza..." />
+            <small class="hint" id="keyFieldHint"></small>
+          </div>
+          <div class="row">
+            <button id="saveClose" class="primary" style="width:auto">💾 Save &amp; close settings</button>
+            <button id="replaceKey" style="width:auto" hidden>✏️ Replace key</button>
+            <button id="testKey" style="width:auto">🔌 Test connection</button>
+            <button id="clearKey" style="width:auto">🗑 Clear this key</button>
+          </div>
+          <small class="hint" id="testResult"></small>
+        </section>
+
+        <!-- ---------- LOCAL AI TAB ---------- -->
+        <section id="tab-local" class="tabpane" hidden>
+          <small class="hint">Run a model on <b>this device</b> — free, private, works offline. Install <a href="https://ollama.com" target="_blank" rel="noopener"><b>Ollama</b></a> or <a href="https://lmstudio.ai" target="_blank" rel="noopener"><b>LM Studio</b></a>, start it, then press detect. The app finds the server and lists its installed models automatically.</small>
+          <div class="row" style="margin-top:.5rem">
+            <button id="localDetect" class="primary" style="width:auto">🔄 Detect local models</button>
+            <button id="localTest" style="width:auto">🔌 Test connection</button>
+          </div>
+          <div class="field">
+            <label for="localModelSel"><b>Local model</b></label>
+            <select id="localModelSel"></select>
+            <small class="hint" id="localStatus"></small>
+          </div>
+          <div class="row">
+            <button id="localSave" class="primary" style="width:auto">💾 Use this model &amp; close</button>
+            <button id="localClear" class="small" style="width:auto">🗑 Forget local model</button>
+          </div>
+
+          <hr style="border:0;border-top:1px solid #eee;margin:.9rem 0" />
+          <label><b>🌐 Run AI in this browser (WebLLM)</b> — no install, no key, no account</label>
+          <small class="hint" id="webllmHint">Downloads a compact model once (Chrome/Edge with WebGPU), then generates questions fully offline — the automatic fallback when cloud providers fail.</small>
+          <div class="field">
+            <select id="webllmModel"></select>
+          </div>
+          <div class="row">
+            <button id="webllmEnable" class="primary" style="width:auto">⬇️ Enable in-browser AI</button>
+            <button id="webllmClear" class="small" style="width:auto">🗑 Disable</button>
+          </div>
+          <small class="hint" id="webllmStatus"></small>
         </section>
 
         <hr style="border:0;border-top:1px solid #eee;margin:.9rem 0" />
         <label><input type="checkbox" id="autoNextPref" /> ⏭ Auto-advance to the next question after a short countdown</label>
         <label><input type="checkbox" id="reuse" /> ♻️ Reuse saved questions first when available (saves API credits)</label>
         <div class="row">
-          <button id="resetHistory" class="small">🔄 Forget what I've seen for the current subject</button>
+          <button id="resetHistory" class="small">🔄 Forget what I've seen for the current subject (clears saved questions too)</button>
           <button id="closeSettings" class="small">Close</button>
         </div>
       </details>

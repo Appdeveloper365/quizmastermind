@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@cline/sdk": "latest",
+    "@mlc-ai/web-llm": "^0.2.85",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {

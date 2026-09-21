@@ -5,7 +5,7 @@ import { loadStats, saveStats } from "./storage/game";
 import { ProviderError } from "./providers/types";
 import { BYOK, BYOK_IDS, isByokId, FREE_KEY_PORTAL, type ByokId } from "./providers/registry";
 import { PuterProvider } from "./providers/puter";
-import { DEFAULT_NVIDIA_PROXY, loadNvidiaProxy, saveNvidiaProxy } from "./providers/openai-compatible";
+import { LocalProvider, detectLocalModels, loadLocalConfig, saveLocalConfig, clearLocalConfig, type LocalModel } from "./providers/local";
 import { makeByokFor } from "./quiz/select";
 import type { Difficulty } from "./quiz/prompt";
 import type { QuizQuestion } from "./quiz/schema";
@@ -33,8 +33,9 @@ installBtn.onclick = async () => {
 };
 
 /* ---------- Elements ---------- */
-/* ---------- Elements (single selection menu: #provider is the only chooser) ---------- */
-const providerSelect = $<HTMLSelectElement>("provider");
+/* ---------- Elements (three provider buttons: Puter / Remote key / Local) ---------- */
+const selPuter = $<HTMLButtonElement>("selPuter"), selRemote = $<HTMLButtonElement>("selRemote"), selLocal = $<HTMLButtonElement>("selLocal");
+const selPuterSub = $("selPuterSub"), selRemoteSub = $("selRemoteSub"), selLocalSub = $("selLocalSub");
 const keySettings = $<HTMLDetailsElement>("keySettings");
 const keySummary = $("keySummary");
 const topicInput = $<HTMLInputElement>("topic");
@@ -43,11 +44,12 @@ const reuse = $<HTMLInputElement>("reuse");
 const nextBar = $("nextBar"), nextBtn = $<HTMLButtonElement>("nextBtn"), nextFill = $("nextFill");
 const autoNext = $<HTMLInputElement>("autoNext"), autoNextPref = $<HTMLInputElement>("autoNextPref");
 const puterBadge = $("puterBadge");
-const byokUi = $("byokUi");
+const byokProvider = $<HTMLSelectElement>("byokProvider");
 const keyInput = $<HTMLInputElement>("keyInput");
 const keyFieldHint = $("keyFieldHint");
-const nvidiaProxyField = $("nvidiaProxyField");
-const nvidiaProxyInput = $<HTMLInputElement>("nvidiaProxyInput");
+const localDetect = $<HTMLButtonElement>("localDetect"), localTest = $<HTMLButtonElement>("localTest");
+const localModelSel = $<HTMLSelectElement>("localModelSel"), localStatus = $("localStatus");
+const localSave = $<HTMLButtonElement>("localSave"), localClear = $<HTMLButtonElement>("localClear");
 
 /* ---------- State ---------- */
 let engine: QuizEngine | null = null;
@@ -72,17 +74,34 @@ const setAuto = (on: boolean) => {
 autoNext.onchange = () => setAuto(autoNext.checked);
 autoNextPref.onchange = () => setAuto(autoNextPref.checked);
 
-/* ---------- Dropdown from registry (the single selection menu) ---------- */
+/* ---------- Provider selection (three one-line buttons) ---------- */
+let providerChoiceState: ProviderChoice = "auto";
 {
-  const grp = $<HTMLOptGroupElement>("grpByok");
-  for (const id of BYOK_IDS) grp.appendChild(new Option(BYOK[id].name, id));
   const stored = localStorage.getItem("quiz.provider") || "auto";
-  providerSelect.value = stored === "auto" || stored === "puter" || isByokId(stored) ? stored : "auto";
+  providerChoiceState = stored === "auto" || stored === "puter" || stored === "local" || isByokId(stored) ? stored as ProviderChoice : "auto";
 }
-providerSelect.onchange = () => { localStorage.setItem("quiz.provider", providerSelect.value); engine = null; cancelPrefetch(); renderProviderNote(); void refreshKeyMarks(); void renderKeyUI(); };
+const providerChoice = (): ProviderChoice => providerChoiceState;
+function setProviderChoice(v: ProviderChoice) {
+  providerChoiceState = v;
+  localStorage.setItem("quiz.provider", v);
+  engine = null; cancelPrefetch();
+  renderProviderButtons(); renderProviderNote(); void refreshKeyMarks();
+}
+selPuter.onclick = () => setProviderChoice("puter");
+selRemote.onclick = () => { setProviderChoice(isByokId(byokProvider.value) ? byokProvider.value as ByokId : BYOK_IDS[0]); keySettings.open = true; switchTab("key"); };
+selLocal.onclick = () => { setProviderChoice("local"); keySettings.open = true; switchTab("local"); };
 
-/** The ONE selected provider for the whole app — no second dropdown anywhere. */
-const providerChoice = (): ProviderChoice => providerSelect.value as ProviderChoice;
+function renderProviderButtons() {
+  const active = providerChoiceState;
+  const on = (b: HTMLButtonElement, is: boolean) => { b.classList.toggle("primary", is); };
+  on(selPuter, active === "puter"); on(selRemote, isByokId(active)); on(selLocal, active === "local");
+  selPuterSub.textContent = puterReady ? "signed in ✓" : "free · sign in";
+  selRemoteSub.textContent = isByokId(active) ? BYOK[active].name : "your API key";
+  const lc = loadLocalConfig();
+  selLocalSub.textContent = lc ? lc.model : "on this device";
+  // Auto state: nothing highlighted
+  if (active === "auto") { selPuterSub.textContent = puterReady ? "signed in ✓" : "free · sign in"; }
+}
 
 async function refreshKeyMarks() {
   const saved: string[] = [];
@@ -90,30 +109,24 @@ async function refreshKeyMarks() {
     if (await keyStore.has(id)) saved.push(BYOK[id].name);
   }
   const keyList = saved.length ? `keys saved: ${saved.join(", ")}` : "no API keys saved";
-  keySummary.textContent = `⚙️ AI settings — provider: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${keyList}`;
+  const lc = loadLocalConfig();
+  keySummary.textContent = `⚙️ AI settings — provider: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${keyList}${lc ? ` · local: ${lc.server.label} ${lc.model}` : ""}`;
 }
 
-/* ---------- Key tab: bound to the single menu above — no second dropdown ---------- */
-const currentKeyId = (): ByokId | null => {
-  const v = providerSelect.value;
-  return isByokId(v) ? v : null;
-};
+/* ---------- Remote key tab ---------- */
+{
+  for (const id of BYOK_IDS) byokProvider.appendChild(new Option(BYOK[id].name, id));
+  if (isByokId(providerChoiceState)) byokProvider.value = providerChoiceState;
+}
+const currentKeyId = (): ByokId => byokProvider.value as ByokId;
 
 async function renderKeyUI() {
   const id = currentKeyId();
-  byokUi.hidden = !id;
-  if (!id) {
-    $("portalHint").innerHTML = providerSelect.value === "puter"
-      ? "☁️ Puter is active — it needs no API key. Manage it in the <b>☁️ Puter</b> tab. Pick a 🔑 provider in the menu above to add its key here."
-      : "Pick one of the 🔑 providers in the <b>AI provider</b> menu above — this tab then shows its key link and key field. Until then there is nothing to configure here.";
-    return;
-  }
   const p = BYOK[id];
   $("portalHint").innerHTML =
     `👉 Get your ${p.name} key here: <a href="${p.portalUrl}" target="_blank" rel="noopener"><b>${p.portalName}</b> (${p.portalUrl.replace(/^https?:\/\//, "")})</a>` +
     `<br>${p.steps}` +
     `<br>🎁 One-stop shop for free API keys: <a href="${FREE_KEY_PORTAL.url}" target="_blank" rel="noopener"><b>${FREE_KEY_PORTAL.name}</b></a>`;
-  nvidiaProxyField.hidden = id !== "nvidia";
   keyInput.placeholder = p.keyPrefix;
   const has = await keyStore.has(id);
   keyInput.disabled = has;
@@ -123,33 +136,95 @@ async function renderKeyUI() {
     ? `Key saved ✓ — shown as dots and locked. Press <b>✏️ Replace</b> to change it or <b>🗑 Clear</b> to remove it.`
     : `Paste your key, then <b>💾 Save</b>. After saving it appears as dots. Stored on this device only.`;
 }
-nvidiaProxyInput.value = loadNvidiaProxy() || DEFAULT_NVIDIA_PROXY;
-nvidiaProxyInput.onchange = () => { saveNvidiaProxy(nvidiaProxyInput.value.trim()); engine = null; cancelPrefetch(); };
+byokProvider.onchange = () => void renderKeyUI();
+
+/* ---------- Local AI tab ---------- */
+let localFound: LocalModel[] = [];
+async function runLocalDetect() {
+  localStatus.textContent = "Probing localhost for Ollama / LM Studio…";
+  localDetect.disabled = true;
+  localFound = await detectLocalModels();
+  localDetect.disabled = false;
+  localModelSel.innerHTML = "";
+  if (!localFound.length) {
+    localStatus.innerHTML = "❌ No local AI found. Install <a href='https://ollama.com' target='_blank' rel='noopener'><b>Ollama</b></a> or <a href='https://lmstudio.ai' target='_blank' rel='noopener'><b>LM Studio</b></a>, start it, pull a model, then press detect again.";
+    return;
+  }
+  for (const m of localFound) localModelSel.appendChild(new Option(`${m.server.label} · ${m.model}`, `${m.server.kind}|${m.model}`));
+  const saved = loadLocalConfig();
+  if (saved) {
+    const hit = localFound.findIndex((m) => m.server.kind === saved.server.kind && m.model === saved.model);
+    localModelSel.selectedIndex = hit >= 0 ? hit : 0;
+  }
+  localStatus.textContent = `✅ Found ${localFound.length} model${localFound.length > 1 ? "s" : ""} — pick one and press “💾 Use this model”.`;
+}
+const selectedLocal = (): LocalModel | null => {
+  const i = localModelSel.selectedIndex;
+  return i >= 0 && i < localFound.length ? localFound[i] : null;
+};
+localDetect.onclick = () => void runLocalDetect();
+localSave.onclick = () => {
+  const m = selectedLocal();
+  if (!m) { localStatus.textContent = "Detect local models first, then pick one."; return; }
+  saveLocalConfig({ server: m.server, model: m.model });
+  setProviderChoice("local");
+  keySettings.open = false;
+  status(`✅ Local model set: ${m.server.label} · ${m.model}. Press ▶ Start.`);
+};
+localClear.onclick = () => {
+  clearLocalConfig();
+  if (providerChoiceState === "local") setProviderChoice("auto");
+  localModelSel.innerHTML = ""; localFound = [];
+  localStatus.textContent = "Local model forgotten.";
+  renderProviderButtons(); void refreshKeyMarks();
+};
+localTest.onclick = async () => {
+  const m = selectedLocal() ?? (loadLocalConfig() ? { server: loadLocalConfig()!.server, model: loadLocalConfig()!.model } : null);
+  if (!m) { localStatus.textContent = "Detect and pick a model first."; return; }
+  localStatus.textContent = `Testing ${m.server.label} · ${m.model}…`;
+  try {
+    await new LocalProvider({ server: m.server, model: m.model }).verify();
+    localStatus.textContent = `✅ ${m.server.label} answered — model “${m.model}” works.`;
+  } catch (e) { localStatus.textContent = `❌ ${explainError(e)}`; }
+};
 
 void renderKeyUI();
 void refreshKeyMarks();
+renderProviderButtons();
 
-async function renderProviderNote() {
-  const v = providerSelect.value, k = BYOK[v as ByokId];
-  const base = v === "puter"
-    ? (puterReady ? "☁️ Puter is the active provider — signed in ✓. Your own-API keys stay saved but unused." : "☁️ Puter is the active provider — open AI settings → Puter and press “Sign in with Puter”.")
-    : v === "auto" ? "✨ Auto is active — the agent uses your first working key, falling back to the next one, then Puter."
-    : "";
-  if (k) {
-    const has = await keyStore.has(v);
-    $("providerNote").textContent = has
-      ? `🔑 ${k.name} is the active provider — key saved ✓.`
-      : `🔑 ${k.name} is the active provider — no key saved yet. Open AI settings → Use my API key.`;
+function renderProviderNote() {
+  const v = providerChoiceState;
+  if (v === "puter") {
+    $("providerNote").textContent = puterReady
+      ? "☁️ Puter is active — signed in ✓. Your own-API keys stay saved but unused."
+      : "☁️ Puter is active — open AI settings → ☁️ Puter and press “Sign in with Puter”.";
     return;
   }
-  $("providerNote").textContent = base;
+  if (v === "local") {
+    const lc = loadLocalConfig();
+    $("providerNote").textContent = lc
+      ? `💻 Local AI is active — ${lc.server.label} · ${lc.model}. Runs on this device.`
+      : "💻 Local AI is active — no model selected yet. Open AI settings → 💻 Local AI → “🔄 Detect local models”.";
+    return;
+  }
+  if (isByokId(v)) {
+    const k = BYOK[v];
+    void keyStore.has(v).then((has) => {
+      $("providerNote").textContent = has
+        ? `🔑 ${k.name} is active — key saved ✓.`
+        : `🔑 ${k.name} is active — no key saved yet. Open AI settings → 🔑 Remote API key.`;
+    });
+    return;
+  }
+  $("providerNote").textContent = "✨ Auto is active — the agent uses your first working key, then local, then Puter.";
 }
 /* ---------- Tabs ---------- */
+function switchTab(name: string) {
+  document.querySelectorAll<HTMLButtonElement>(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
+  document.querySelectorAll<HTMLElement>(".tabpane").forEach((p) => (p.hidden = p.id !== `tab-${name}`));
+}
 for (const t of Array.from(document.querySelectorAll<HTMLButtonElement>(".tab"))) {
-  t.onclick = () => {
-    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === t));
-    document.querySelectorAll<HTMLElement>(".tabpane").forEach((p) => (p.hidden = p.id !== `tab-${t.dataset.tab}`));
-  };
+  t.onclick = () => switchTab(t.dataset.tab!);
 }
 document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((b) => {
   b.onclick = async () => { await navigator.clipboard.writeText($(b.dataset.copy!).textContent ?? ""); b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500); };
@@ -171,7 +246,7 @@ async function checkPuter() {
     ? `${who} Free allowance is per-account; nothing is billed to this site.`
     : "No account yet? Press “Sign in with Puter” — it takes seconds, and one account works across every Puter app.";
   ($("usePuter") as HTMLButtonElement).disabled = !puterReady;
-  await refreshKeyMarks(); renderProviderNote();
+  await refreshKeyMarks(); renderProviderNote(); renderProviderButtons();
 }
 $("puterRecheck").onclick = () => void checkPuter();
 $("puterSignIn").onclick = async () => {
@@ -187,12 +262,12 @@ $("puterSignIn").onclick = async () => {
 };
 $("puterSignOut").onclick = async () => {
   await PuterProvider.signOut(); engine = null; await checkPuter();
-  if (providerSelect.value === "puter") { providerSelect.value = "auto"; localStorage.setItem("quiz.provider", "auto"); }
+  if (providerChoiceState === "puter") setProviderChoice("auto");
   status("Signed out of Puter.");
 };
 $("usePuter").onclick = () => {
   if (!puterReady) return status("Sign in to Puter first, then press “Use Puter & close”.");
-  providerSelect.value = "puter"; providerSelect.dispatchEvent(new Event("change"));
+  setProviderChoice("puter");
   keySettings.open = false; status("Provider set to Puter (auto model). Press ▶ Start.");
 };
 $("puterTest").onclick = async () => {
@@ -241,7 +316,7 @@ async function firstCandidateEngine(): Promise<QuizEngine> {
   const choice = providerChoice();
   if (engine && currentProviderId === choice) return engine;
   const chain = await providerChain(choice, { puterReady });
-  if (!chain.length) throw new Error("No provider available. Add a free API key in AI settings, or sign in to Puter.");
+  if (!chain.length) throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — open AI settings.");
   for (const cand of chain) {
     try {
       const provider = await cand.build();
@@ -249,18 +324,18 @@ async function firstCandidateEngine(): Promise<QuizEngine> {
       currentProviderId = cand.id; return engine;
     } catch { /* keep prefetch silent */ }
   }
-  throw new Error("No provider available. Add a free API key in AI settings, or sign in to Puter.");
+  throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — open AI settings.");
 }
 const currentTopic = () => topicInput.value.trim() || "General knowledge";
 const currentDifficulty = () => difficultySel.value as Difficulty;
 
-function pointToSettings(tab: "puter" | "key") {
+function pointToSettings(tab: "puter" | "key" | "local") {
   keySettings.open = true;
-  (document.querySelector(`.tab[data-tab="${tab}"]`) as HTMLButtonElement)?.click();
+  switchTab(tab);
   keySettings.classList.remove("attention"); void keySettings.offsetWidth; keySettings.classList.add("attention");
   if (!keySettings.querySelector(".start-here")) {
     const tag = document.createElement("div"); tag.className = "start-here";
-    tag.textContent = tab === "puter" ? "👉 Start here: press “Sign in with Puter” (no key to paste) — or use the API-key tab for stronger models" : "👉 Start here: pick a provider → click its link to get a free key → paste → Save & close";
+    tag.textContent = tab === "puter" ? "👉 Start here: press “Sign in with Puter” (no key to paste) — or use the API-key tab for stronger models" : tab === "local" ? "👉 Start here: install Ollama or LM Studio, start it, then press “🔄 Detect local models”" : "👉 Start here: pick a provider → click its link to get a free key → paste → Save & close";
     keySettings.querySelector("summary")!.insertAdjacentElement("afterend", tag);
   }
   keySettings.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -269,7 +344,7 @@ function pointToSettings(tab: "puter" | "key") {
 /* ---------- Prefetch + auto-advance ---------- */
 const AUTO_DELAY_MS = 4500;
 let prefetchAbort: AbortController | null = null, prefetched: QuizQuestion | null = null, prefetchKey = "", countdownRaf = 0;
-const contextKey = () => `${currentTopic()}|${currentDifficulty()}|${providerSelect.value}`;
+const contextKey = () => `${currentTopic()}|${currentDifficulty()}|${providerChoice()}`;
 function startPrefetch() {
   cancelPrefetch();
   const ctl = new AbortController(); prefetchAbort = ctl; prefetchKey = contextKey();
@@ -344,7 +419,7 @@ async function generateAndShow() {
   try {
     if (!topicInput.value.trim()) status("Tip: type a subject above — using “General knowledge” for now.");
     const chain = await providerChain(providerChoice(), { puterReady });
-    if (!chain.length) throw new Error("No provider available. Add a free API key in AI settings, or sign in to Puter.");
+    if (!chain.length) throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — open AI settings.");
     const topic = topicInput.value.trim() || "General knowledge";
     let lastErr: unknown = null;
     // True-agent loop: try the selected provider, then fall back through every other working one.
@@ -374,8 +449,9 @@ async function generateAndShow() {
     status(`⚠️ ${explainError(e)}`);
     engine = null;
     const msg = (e as Error).message ?? "";
-    if (/No provider available/.test(msg)) pointToSettings("key");
+    if (/No provider available/.test(msg)) pointToSettings("puter");
     else if (/^No .* key saved/.test(msg)) pointToSettings("key");
+    else if (/local model|Local AI|localhost/i.test(msg)) pointToSettings("local");
     else if (/Puter/i.test(msg)) pointToSettings("puter");
   } finally { $("start").removeAttribute("disabled"); }
 }
@@ -384,13 +460,12 @@ async function generateAndShow() {
 $("start").onclick = () => void showNext();
 $("saveClose").onclick = async () => {
   const id = currentKeyId();
-  if (!id) return status("Choose a 🔑 provider in the AI provider menu above first — then this tab shows where to paste its key.");
   const info = BYOK[id];
   const key = keyInput.disabled ? keyInput.value : keyInput.value.trim();
   if (!key) return status(`Paste your ${info.name} API key first (get it from ${info.portalName}).`);
   await keyStore.save(id, key);
-  providerSelect.value = id; localStorage.setItem("quiz.provider", id); engine = null; cancelPrefetch();
-  await refreshKeyMarks(); await renderProviderNote(); await renderKeyUI();
+  setProviderChoice(id);
+  await refreshKeyMarks(); await renderKeyUI();
   keySettings.querySelector(".start-here")?.remove(); keySettings.classList.remove("attention"); keySettings.open = false;
   $("start").scrollIntoView({ behavior: "smooth", block: "center" });
   status(`✅ ${info.name} key saved. Provider set to “${info.name}”. Press ▶ Start.`);
@@ -402,9 +477,9 @@ $("replaceKey").onclick = () => {
 };
 $("clearKey").onclick = async () => {
   const id = currentKeyId();
-  if (!id) return status("Choose a 🔑 provider in the AI provider menu above first.");
-  await keyStore.clear(id); engine = null; cancelPrefetch();
-  await refreshKeyMarks(); await renderProviderNote(); await renderKeyUI();
+  await keyStore.clear(id);
+  if (providerChoiceState === id) setProviderChoice("auto"); else { engine = null; cancelPrefetch(); }
+  await refreshKeyMarks(); renderProviderNote(); await renderKeyUI();
   status(`Cleared ${BYOK[id].name} key. The app's agent will fall back to your other working providers.`);
 };
 $("closeSettings").onclick = () => { keySettings.open = false; };
@@ -418,7 +493,6 @@ renderStats();
 $("testKey").onclick = async () => {
   const res = $("testResult");
   const id = currentKeyId();
-  if (!id) { res.textContent = "Choose a 🔑 provider in the AI provider menu above first."; return; }
   const info = BYOK[id];
   const typed = keyInput.disabled ? keyInput.value : keyInput.value.trim();
   res.textContent = `Testing ${info.name}…`;

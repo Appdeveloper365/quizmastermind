@@ -1,5 +1,5 @@
 /** Single source of truth for remote providers + models. Order = dropdown order = Auto priority. */
-export type ByokId = "gemini" | "groq" | "openrouter" | "nvidia" | "xai";
+export type ByokId = "gemini" | "groq" | "openrouter" | "xai";
 
 export interface ByokInfo { id: ByokId; name: string; model: string; portalName: string; portalUrl: string; keyPrefix: string; steps: string; }
 
@@ -13,11 +13,6 @@ export const BYOK: Record<ByokId, ByokInfo> = {
     id: "groq", name: "Groq", model: "llama-3.3-70b-versatile",
     portalName: "Groq Console", portalUrl: "https://console.groq.com/keys", keyPrefix: "gsk_...",
     steps: "Sign in (Google/GitHub/email) → “Create API Key” → copy it. Free tier, very fast.",
-  },
-  nvidia: {
-    id: "nvidia", name: "NVIDIA NIM", model: "nvidia/nemotron-3.5-lightning-30b-a3b",
-    portalName: "NVIDIA Build", portalUrl: "https://build.nvidia.com/settings/api-keys", keyPrefix: "nvapi-...",
-    steps: "Free credits from build.nvidia.com → API Keys → “Generate API Key” → copy it. NVIDIA blocks direct browser calls (CORS): the built-in shared proxy may be down — if calls fail, deploy your own free worker from the repo's cloudflare/ folder and paste its URL in Advanced below.",
   },
   openrouter: {
     id: "openrouter", name: "OpenRouter", model: "qwen/qwen3-235b-a22b:free",

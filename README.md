@@ -50,22 +50,20 @@ manifest.webmanifest, sw.js, icons/ are all relative-path; .nojekyll is included
 and other files serve correctly on Pages. An in-app "📲 Install as app" button appears via
 beforeinstallprompt (Android/Chrome/Edge desktop; iOS via Share → Add to Home Screen).
 
-## NVIDIA proxy (self-host required — shared proxy is currently down)
+## Local AI models (Ollama / LM Studio)
 
-NVIDIA's API blocks direct browser calls (CORS), so NVIDIA traffic is routed through a tiny
-Cloudflare Worker pass-through proxy. The shared default built into the app
-(`https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev`) is currently unreachable —
-deploy your own free worker to use the NVIDIA provider:
+The app can use models running **on your own device** — free, private, works offline:
 
-1. Open a terminal in this repo's `cloudflare/` folder.
-2. `npx wrangler login`  → browser opens, sign in / create a free Cloudflare account.
-3. `npx wrangler deploy` → prints your worker URL, e.g.
-   `https://quizmastermind-nvidia-proxy.<your-subdomain>.workers.dev`
-4. In the app: AI settings → Use my API key → NVIDIA → expand "Advanced — NVIDIA proxy URL" and
-   paste your `https://…workers.dev` URL, then paste your `nvapi-...` key and Save.
+1. Install [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) and start it.
+   (Ollama: `ollama pull llama3.2` then `ollama serve`. LM Studio: download a model and start the local server.)
+2. In the app press **💻 Local AI** → **🔄 Detect local models** — the app probes localhost,
+   finds the server and lists every installed model automatically.
+3. Pick a model → **💾 Use this model &amp; close**. No API key, no cloud, no account.
 
-Your key is only forwarded through your worker to NVIDIA — never stored.
-Meanwhile, any other provider (Gemini, Groq, OpenRouter, xAI, Puter) works without any proxy.
+## AI providers
+
+- **☁️ Puter** — free cloud AI on your own Puter account, no API key. Press **☁️ Puter**, sign in, done.
+- **🔑 Remote API key** — bring a free key from Gemini, Groq, OpenRouter or xAI. Press **🔑 Remote API key**, paste, save.
 
 ## Privacy policy
 

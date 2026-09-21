@@ -13,7 +13,7 @@ export interface ChatOpts { temperature?: number; maxTokens?: number; signal?: A
 export interface JsonSchemas { strict: unknown; gemini: unknown; name: string; }
 
 export interface QuizProvider {
-  readonly id: ByokId | "puter";
+  readonly id: ByokId | "puter" | "local";
   readonly label: string;
   generateRaw(params: GenerateParams): Promise<unknown>;
   /** Generic structured-JSON chat call; also backs generateRaw on every provider. */

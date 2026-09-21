@@ -12,7 +12,7 @@ export interface CompatConfig {
   networkHint?: string;
 }
 
-/** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, NVIDIA NIM, xAI. */
+/** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, xAI. */
 export class OpenAICompatibleProvider implements QuizProvider {
   readonly id: ByokId; readonly label: string;
   constructor(private apiKey: string, private cfg: CompatConfig) { this.id = cfg.id; this.label = cfg.label; }
@@ -91,25 +91,6 @@ export const GROQ_CFG: CompatConfig = {
   id: "groq", label: providerLabel(BYOK.groq),
   endpoint: "https://api.groq.com/openai/v1/chat/completions", model: BYOK.groq.model, jsonMode: "json_object",
   extraHeaders: appIdentity(),
-};
-/** NVIDIA blocks direct browser calls (CORS) — the app routes through the user's own Cloudflare Worker pass-through proxy (cloudflare/ in the repo). */
-export const NVIDIA_PROXY_URL_KEY = "quiz.nvidiaProxy";
-export const NVIDIA_UPSTREAM = "https://integrate.api.nvidia.com/v1/chat/completions";
-/** Default pass-through worker (repo cloudflare/nvidia-cors-proxy.js) — preconfigured so NVIDIA works out of the box. */
-export const DEFAULT_NVIDIA_PROXY = "https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev";
-export function loadNvidiaProxy(): string { try { return localStorage.getItem(NVIDIA_PROXY_URL_KEY)?.trim() ?? ""; } catch { return ""; } }
-export function saveNvidiaProxy(url: string): void { try { localStorage.setItem(NVIDIA_PROXY_URL_KEY, url.trim()); } catch { /* storage unavailable */ } }
-export const makeNvidiaCfg = (): CompatConfig => {
-  const custom = loadNvidiaProxy();
-  const endpoint = custom || DEFAULT_NVIDIA_PROXY || NVIDIA_UPSTREAM;
-  return {
-    id: "nvidia", label: providerLabel(BYOK.nvidia),
-    endpoint, model: BYOK.nvidia.model, jsonMode: "json_object",
-    extraHeaders: appIdentity(),
-    networkHint: custom
-      ? "Your custom NVIDIA proxy URL is unreachable — check it in AI settings → NVIDIA → Advanced, or redeploy the worker (cloudflare/ folder)."
-      : "The shared NVIDIA proxy is currently unreachable — you can deploy your own free worker from the cloudflare/ folder (see README → NVIDIA proxy) and paste its URL in AI settings → NVIDIA → Advanced, or pick a different provider meanwhile.",
-  };
 };
 export const XAI_CFG: CompatConfig = {
   id: "xai", label: providerLabel(BYOK.xai),

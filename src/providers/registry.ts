@@ -1,5 +1,5 @@
 /** Single source of truth for remote providers + models. Order = dropdown order = Auto priority. */
-export type ByokId = "gemini" | "groq" | "openrouter" | "xai";
+export type ByokId = "gemini" | "groq" | "openrouter" | "pollinations" | "xai";
 
 export interface ByokInfo { id: ByokId; name: string; model: string; portalName: string; portalUrl: string; keyPrefix: string; steps: string; }
 
@@ -13,6 +13,11 @@ export const BYOK: Record<ByokId, ByokInfo> = {
     id: "groq", name: "Groq", model: "llama-3.3-70b-versatile",
     portalName: "Groq Console", portalUrl: "https://console.groq.com/keys", keyPrefix: "gsk_...",
     steps: "Sign in (Google/GitHub/email) → “Create API Key” → copy it. Free tier, very fast.",
+  },
+  pollinations: {
+    id: "pollinations", name: "Pollinations", model: "openai/gpt-5.4-nano",
+    portalName: "Pollinations", portalUrl: "https://enter.pollinations.ai/keys", keyPrefix: "sk_...",
+    steps: "Sign in at enter.pollinations.ai (GitHub/Google) → create a key → copy it. Free pollen included, no card. One key routes to many models.",
   },
   openrouter: {
     id: "openrouter", name: "OpenRouter", model: "qwen/qwen3-235b-a22b:free",

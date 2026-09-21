@@ -12,7 +12,7 @@ export interface CompatConfig {
   networkHint?: string;
 }
 
-/** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, xAI. */
+/** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, Pollinations, xAI. */
 export class OpenAICompatibleProvider implements QuizProvider {
   readonly id: ByokId; readonly label: string;
   constructor(private apiKey: string, private cfg: CompatConfig) { this.id = cfg.id; this.label = cfg.label; }
@@ -95,6 +95,12 @@ export const GROQ_CFG: CompatConfig = {
 export const XAI_CFG: CompatConfig = {
   id: "xai", label: providerLabel(BYOK.xai),
   endpoint: "https://api.x.ai/v1/chat/completions", model: BYOK.xai.model, jsonMode: "json_object",
+  extraHeaders: appIdentity(),
+};
+/** Pollinations — OpenAI-compatible multi-model gateway; free key at enter.pollinations.ai/keys (no card). */
+export const POLLINATIONS_CFG: CompatConfig = {
+  id: "pollinations", label: providerLabel(BYOK.pollinations),
+  endpoint: "https://gen.pollinations.ai/v1/chat/completions", model: BYOK.pollinations.model, jsonMode: "json_object",
   extraHeaders: appIdentity(),
 };
 export const OPENROUTER_CFG: CompatConfig = {

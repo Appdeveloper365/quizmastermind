@@ -63,7 +63,7 @@ The app can use models running **on your own device** — free, private, works o
 ## AI providers
 
 - **☁️ Puter** — free cloud AI on your own Puter account, no API key. Press **☁️ Puter**, sign in, done.
-- **🔑 Remote API key** — bring a free key from Gemini, Groq, OpenRouter or xAI. Press **🔑 Remote API key**, paste, save.
+- **🔑 Remote API key** — bring a free key from Gemini, Groq, Pollinations, OpenRouter or xAI. Press **🔑 Remote API key**, paste, save. (Pollinations: free key at enter.pollinations.ai/keys, no card — one key routes to many models.)
 
 ## Privacy policy
 

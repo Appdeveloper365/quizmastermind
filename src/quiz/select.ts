@@ -1,6 +1,6 @@
 import { ProviderError, type QuizProvider } from "../providers/types";
 import { GeminiProvider } from "../providers/gemini";
-import { OpenAICompatibleProvider, GROQ_CFG, OPENROUTER_CFG, XAI_CFG } from "../providers/openai-compatible";
+import { OpenAICompatibleProvider, GROQ_CFG, OPENROUTER_CFG, POLLINATIONS_CFG, XAI_CFG } from "../providers/openai-compatible";
 import { LocalProvider, loadLocalConfig } from "../providers/local";
 import { PuterProvider } from "../providers/puter";
 import { BYOK, BYOK_IDS, isByokId, type ByokId } from "../providers/registry";
@@ -14,10 +14,11 @@ export interface SelectDeps {
 
 function makeByok(id: ByokId, key: string): QuizProvider {
   switch (id) {
-    case "gemini":     return new GeminiProvider(key);
-    case "groq":       return new OpenAICompatibleProvider(key, GROQ_CFG);
-    case "openrouter": return new OpenAICompatibleProvider(key, OPENROUTER_CFG);
-    case "xai":        return new OpenAICompatibleProvider(key, XAI_CFG);
+    case "gemini":       return new GeminiProvider(key);
+    case "groq":         return new OpenAICompatibleProvider(key, GROQ_CFG);
+    case "openrouter":   return new OpenAICompatibleProvider(key, OPENROUTER_CFG);
+    case "pollinations": return new OpenAICompatibleProvider(key, POLLINATIONS_CFG);
+    case "xai":          return new OpenAICompatibleProvider(key, XAI_CFG);
   }
 }
 

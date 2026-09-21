@@ -91,6 +91,31 @@ selPuter.onclick = () => setProviderChoice("puter");
 selRemote.onclick = () => { setProviderChoice(isByokId(byokProvider.value) ? byokProvider.value as ByokId : BYOK_IDS[0]); keySettings.open = true; switchTab("key"); };
 selLocal.onclick = () => { setProviderChoice("local"); keySettings.open = true; switchTab("local"); };
 
+/* Inline provider list — one small button per remote provider, right under "Use your own API key". */
+const byokList = $("byokList");
+for (const id of BYOK_IDS) {
+  const b = document.createElement("button");
+  b.className = "small";
+  b.style.flex = "1";
+  b.dataset.byok = id;
+  b.onclick = () => {
+    byokProvider.value = id;
+    void renderKeyUI();
+    setProviderChoice(id);
+    keySettings.open = true; switchTab("key");
+  };
+  byokList.appendChild(b);
+}
+
+async function renderByokList() {
+  for (const b of Array.from(byokList.querySelectorAll<HTMLButtonElement>("[data-byok]"))) {
+    const id = b.dataset.byok as ByokId;
+    const has = await keyStore.has(id);
+    b.textContent = `${BYOK[id].name}${has ? " ✓" : ""}`;
+    b.classList.toggle("primary", providerChoiceState === id);
+  }
+}
+
 function renderProviderButtons() {
   const active = providerChoiceState;
   const on = (b: HTMLButtonElement, is: boolean) => { b.classList.toggle("primary", is); };
@@ -99,8 +124,8 @@ function renderProviderButtons() {
   selRemoteSub.textContent = isByokId(active) ? BYOK[active].name : "your API key";
   const lc = loadLocalConfig();
   selLocalSub.textContent = lc ? lc.model : "on this device";
-  // Auto state: nothing highlighted
-  if (active === "auto") { selPuterSub.textContent = puterReady ? "signed in ✓" : "free · sign in"; }
+  byokList.style.display = isByokId(active) || active === "auto" ? "" : "none";
+  void renderByokList();
 }
 
 async function refreshKeyMarks() {
@@ -136,7 +161,7 @@ async function renderKeyUI() {
     ? `Key saved ✓ — shown as dots and locked. Press <b>✏️ Replace</b> to change it or <b>🗑 Clear</b> to remove it.`
     : `Paste your key, then <b>💾 Save</b>. After saving it appears as dots. Stored on this device only.`;
 }
-byokProvider.onchange = () => void renderKeyUI();
+byokProvider.onchange = () => { void renderKeyUI(); void renderByokList(); };
 
 /* ---------- Local AI tab ---------- */
 let localFound: LocalModel[] = [];

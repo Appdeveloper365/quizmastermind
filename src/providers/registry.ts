@@ -17,7 +17,7 @@ export const BYOK: Record<ByokId, ByokInfo> = {
   nvidia: {
     id: "nvidia", name: "NVIDIA NIM", model: "nvidia/nemotron-3.5-lightning-30b-a3b",
     portalName: "NVIDIA Build", portalUrl: "https://build.nvidia.com/settings/api-keys", keyPrefix: "nvapi-...",
-    steps: "Free credits from build.nvidia.com → API Keys → “Generate API Key” → copy it. (Calls are routed through a preconfigured pass-through proxy automatically — no setup needed.)",
+    steps: "Free credits from build.nvidia.com → API Keys → “Generate API Key” → copy it. NVIDIA blocks direct browser calls (CORS): the built-in shared proxy may be down — if calls fail, deploy your own free worker from the repo's cloudflare/ folder and paste its URL in Advanced below.",
   },
   openrouter: {
     id: "openrouter", name: "OpenRouter", model: "qwen/qwen3-235b-a22b:free",

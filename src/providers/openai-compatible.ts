@@ -8,6 +8,8 @@ export interface CompatConfig {
   jsonMode: "json_schema" | "json_object";
   extraHeaders?: Record<string, string>;
   extraBody?: Record<string, unknown>;
+  /** Appended to the network/CORS error to help the user self-diagnose (e.g. NVIDIA proxy). */
+  networkHint?: string;
 }
 
 /** Generic OpenAI-compatible chat/completions: Groq, OpenRouter, NVIDIA NIM, xAI. */
@@ -46,7 +48,8 @@ export class OpenAICompatibleProvider implements QuizProvider {
         });
       } catch (e) {
         if ((e as Error).name === "AbortError") throw e;
-        throw new ProviderError("network", `Couldn't reach ${this.cfg.endpoint} — network, CORS or an ad-blocker. ${(e as Error).message}`);
+        const hint = this.cfg.networkHint ? ` ${this.cfg.networkHint}` : "";
+        throw new ProviderError("network", `Couldn't reach ${this.cfg.endpoint} — network, CORS or an ad-blocker.${hint} ${(e as Error).message}`);
       }
       return res;
     };
@@ -96,11 +99,18 @@ export const NVIDIA_UPSTREAM = "https://integrate.api.nvidia.com/v1/chat/complet
 export const DEFAULT_NVIDIA_PROXY = "https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev";
 export function loadNvidiaProxy(): string { try { return localStorage.getItem(NVIDIA_PROXY_URL_KEY)?.trim() ?? ""; } catch { return ""; } }
 export function saveNvidiaProxy(url: string): void { try { localStorage.setItem(NVIDIA_PROXY_URL_KEY, url.trim()); } catch { /* storage unavailable */ } }
-export const makeNvidiaCfg = (): CompatConfig => ({
-  id: "nvidia", label: providerLabel(BYOK.nvidia),
-  endpoint: loadNvidiaProxy() || DEFAULT_NVIDIA_PROXY || NVIDIA_UPSTREAM, model: BYOK.nvidia.model, jsonMode: "json_object",
-  extraHeaders: appIdentity(),
-});
+export const makeNvidiaCfg = (): CompatConfig => {
+  const custom = loadNvidiaProxy();
+  const endpoint = custom || DEFAULT_NVIDIA_PROXY || NVIDIA_UPSTREAM;
+  return {
+    id: "nvidia", label: providerLabel(BYOK.nvidia),
+    endpoint, model: BYOK.nvidia.model, jsonMode: "json_object",
+    extraHeaders: appIdentity(),
+    networkHint: custom
+      ? "Your custom NVIDIA proxy URL is unreachable — check it in AI settings → NVIDIA → Advanced, or redeploy the worker (cloudflare/ folder)."
+      : "The shared NVIDIA proxy is currently unreachable — you can deploy your own free worker from the cloudflare/ folder (see README → NVIDIA proxy) and paste its URL in AI settings → NVIDIA → Advanced, or pick a different provider meanwhile.",
+  };
+};
 export const XAI_CFG: CompatConfig = {
   id: "xai", label: providerLabel(BYOK.xai),
   endpoint: "https://api.x.ai/v1/chat/completions", model: BYOK.xai.model, jsonMode: "json_object",

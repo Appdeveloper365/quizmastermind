@@ -50,15 +50,22 @@ manifest.webmanifest, sw.js, icons/ are all relative-path; .nojekyll is included
 and other files serve correctly on Pages. An in-app "📲 Install as app" button appears via
 beforeinstallprompt (Android/Chrome/Edge desktop; iOS via Share → Add to Home Screen).
 
-## NVIDIA proxy (preconfigured — no setup needed)
+## NVIDIA proxy (self-host required — shared proxy is currently down)
 
 NVIDIA's API blocks direct browser calls (CORS), so NVIDIA traffic is routed through a tiny
-Cloudflare Worker pass-through proxy. A shared default is built into the app
-(https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev) — users do nothing.
+Cloudflare Worker pass-through proxy. The shared default built into the app
+(`https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev`) is currently unreachable —
+deploy your own free worker to use the NVIDIA provider:
 
-Want to use your own worker instead? From `cloudflare/`: `npx wrangler login` → `npx wrangler deploy`,
-then open AI settings → Use my API key → NVIDIA → expand "Advanced — NVIDIA proxy URL" and paste your
-`https://...workers.dev` URL. Your key is only forwarded through the worker to NVIDIA — never stored.
+1. Open a terminal in this repo's `cloudflare/` folder.
+2. `npx wrangler login`  → browser opens, sign in / create a free Cloudflare account.
+3. `npx wrangler deploy` → prints your worker URL, e.g.
+   `https://quizmastermind-nvidia-proxy.<your-subdomain>.workers.dev`
+4. In the app: AI settings → Use my API key → NVIDIA → expand "Advanced — NVIDIA proxy URL" and
+   paste your `https://…workers.dev` URL, then paste your `nvapi-...` key and Save.
+
+Your key is only forwarded through your worker to NVIDIA — never stored.
+Meanwhile, any other provider (Gemini, Groq, OpenRouter, xAI, Puter) works without any proxy.
 
 ## Privacy policy
 

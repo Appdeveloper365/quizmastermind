@@ -2,6 +2,7 @@ import { ProviderError, type QuizProvider } from "../providers/types";
 import { GeminiProvider } from "../providers/gemini";
 import { OpenAICompatibleProvider, GROQ_CFG, OPENROUTER_CFG, POLLINATIONS_CFG, XAI_CFG } from "../providers/openai-compatible";
 import { LocalProvider, loadLocalConfig } from "../providers/local";
+import { WebLlmProvider, loadWebllmModel } from "../providers/webllm";
 import { PuterProvider } from "../providers/puter";
 import { BYOK, BYOK_IDS, isByokId, type ByokId } from "../providers/registry";
 import { keyStore } from "../storage/keys";
@@ -31,7 +32,7 @@ export function makeByokFor(id: ByokId, key: string): QuizProvider {
 export const choiceName = (id: ProviderChoice): string =>
   id === "puter" ? "Puter" : id === "local" ? "Local AI" : id === "auto" ? "Auto" : (BYOK[id]?.name ?? id);
 
-export interface ProviderCandidate { id: ProviderChoice; build: () => Promise<QuizProvider>; }
+export interface ProviderCandidate { id: ProviderChoice | "webllm"; build: () => Promise<QuizProvider>; }
 
 /**
  * Agent-style ordered candidate list for a generation attempt.
@@ -59,13 +60,22 @@ export async function providerChain(choice: ProviderChoice, deps: SelectDeps): P
       return new LocalProvider(cfg);
     },
   });
+  /** In-browser WebGPU model — the no-key offline fallback. Enabled from the 💻 Local AI tab. */
+  const pushWebllm = () => chain.push({
+    id: "webllm" as const, build: async () => {
+      const model = loadWebllmModel();
+      if (!model) throw new ProviderError("unsupported", "In-browser AI not enabled. Open AI settings → 💻 Local AI → “Run AI in this browser”.");
+      return new WebLlmProvider(model);
+    },
+  });
   // Explicit choice first — the single selection is the single source of truth.
   if (isByokId(choice)) pushByok(choice);
   else if (choice === "puter") pushPuter();
-  else if (choice === "local") pushLocal();
-  // Auto: every saved key in registry order, then local, then Puter.
+  else if (choice === "local") { pushLocal(); pushWebllm(); } // local tab covers both kinds of on-device AI
+  // Auto: every saved key in registry order, then local, then Puter, then in-browser WebLLM.
   for (const id of BYOK_IDS) if (!chain.some((c) => c.id === id) && await keyStore.has(id)) pushByok(id);
   if (!chain.some((c) => c.id === "local") && loadLocalConfig()) pushLocal();
   if (deps.puterReady && !chain.some((c) => c.id === "puter")) pushPuter();
+  if (!chain.some((c) => c.id === "webllm") && loadWebllmModel()) pushWebllm();
   return chain;
 }

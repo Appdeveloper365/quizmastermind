@@ -50,14 +50,18 @@ manifest.webmanifest, sw.js, icons/ are all relative-path; .nojekyll is included
 and other files serve correctly on Pages. An in-app "📲 Install as app" button appears via
 beforeinstallprompt (Android/Chrome/Edge desktop; iOS via Share → Add to Home Screen).
 
-## Local AI models (Ollama / LM Studio)
+## Local AI models (Ollama / LM Studio / in-browser WebLLM)
 
 The app can use models running **on your own device** — free, private, works offline:
 
-1. Install [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) and start it.
-   (Ollama: `ollama pull llama3.2` then `ollama serve`. LM Studio: download a model and start the local server.)
-2. In the app press **💻 Local AI** → **🔄 Detect local models** — the app probes localhost,
-   finds the server and lists every installed model automatically.
+1. **In-browser AI (WebLLM)** — no install, no key, no account: AI settings → 💻 Local AI →
+   "Run AI in this browser" → pick a compact model → Enable. The model downloads once
+   (Chrome/Edge with WebGPU), then generates questions fully offline. It's also the automatic
+   last-resort fallback when cloud providers fail.
+2. **Ollama / LM Studio** — install [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai)
+   and start it. (Ollama: `ollama pull llama3.2` then `ollama serve`. LM Studio: download a model
+   and start the local server.) Then press **💻 Local AI** → **🔄 Detect local models** — the app
+   probes localhost, finds the server and lists every installed model automatically.
 3. Pick a model → **💾 Use this model &amp; close**. No API key, no cloud, no account.
 
 ## AI providers

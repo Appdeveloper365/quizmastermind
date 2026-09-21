@@ -194,6 +194,18 @@
             <button id="localSave" class="primary" style="width:auto">💾 Use this model &amp; close</button>
             <button id="localClear" class="small" style="width:auto">🗑 Forget local model</button>
           </div>
+
+          <hr style="border:0;border-top:1px solid #eee;margin:.9rem 0" />
+          <label><b>🌐 Run AI in this browser (WebLLM)</b> — no install, no key, no account</label>
+          <small class="hint" id="webllmHint">Downloads a compact model once (Chrome/Edge with WebGPU), then generates questions fully offline — the automatic fallback when cloud providers fail.</small>
+          <div class="field">
+            <select id="webllmModel"></select>
+          </div>
+          <div class="row">
+            <button id="webllmEnable" class="primary" style="width:auto">⬇️ Enable in-browser AI</button>
+            <button id="webllmClear" class="small" style="width:auto">🗑 Disable</button>
+          </div>
+          <small class="hint" id="webllmStatus"></small>
         </section>
 
         <hr style="border:0;border-top:1px solid #eee;margin:.9rem 0" />

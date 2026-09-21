@@ -6,6 +6,7 @@ import { ProviderError } from "./providers/types";
 import { BYOK, BYOK_IDS, isByokId, FREE_KEY_PORTAL, type ByokId } from "./providers/registry";
 import { PuterProvider } from "./providers/puter";
 import { LocalProvider, detectLocalModels, loadLocalConfig, saveLocalConfig, clearLocalConfig, type LocalModel } from "./providers/local";
+import { WebLlmProvider, WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL, loadWebllmModel, saveWebllmModel, clearWebllmModel, webGpuSupported } from "./providers/webllm";
 import { makeByokFor } from "./quiz/select";
 import type { Difficulty } from "./quiz/prompt";
 import type { QuizQuestion } from "./quiz/schema";
@@ -135,7 +136,8 @@ async function refreshKeyMarks() {
   }
   const keyList = saved.length ? `keys saved: ${saved.join(", ")}` : "no API keys saved";
   const lc = loadLocalConfig();
-  keySummary.textContent = `⚙️ AI settings — provider: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${keyList}${lc ? ` · local: ${lc.server.label} ${lc.model}` : ""}`;
+  const wl = loadWebllmModel();
+  keySummary.textContent = `⚙️ AI settings — provider: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${keyList}${lc ? ` · local: ${lc.server.label} ${lc.model}` : ""}${wl ? " · in-browser AI on" : ""}`;
 }
 
 /* ---------- Remote key tab ---------- */
@@ -213,6 +215,30 @@ localTest.onclick = async () => {
   } catch (e) { localStatus.textContent = `❌ ${explainError(e)}`; }
 };
 
+/* ---------- WebLLM (in-browser WebGPU) ---------- */
+const webllmModelSel = $<HTMLSelectElement>("webllmModel"), webllmStatus = $("webllmStatus");
+for (const m of WEBLLM_MODELS) webllmModelSel.appendChild(new Option(m.label, m.id));
+webllmModelSel.value = loadWebllmModel() ?? DEFAULT_WEBLLM_MODEL;
+function renderWebllmUI() {
+  const saved = loadWebllmModel();
+  webllmStatus.textContent = saved
+    ? `✅ Enabled — ${WEBLLM_MODELS.find((m) => m.id === saved)?.label ?? saved}. It's the automatic fallback when cloud providers fail.`
+    : webGpuSupported() ? "" : "⚠️ This browser doesn't support WebGPU — in-browser AI won't work here. Use Ollama / LM Studio above instead.";
+}
+$("webllmEnable").onclick = async () => {
+  const model = webllmModelSel.value;
+  saveWebllmModel(model);
+  webllmStatus.textContent = "Preparing the in-browser model… (first run downloads it — this can take a few minutes)";
+  try {
+    await new WebLlmProvider(model, (pct, text) => { webllmStatus.textContent = `⬇️ ${pct}% — ${text}`; }).verify();
+    webllmStatus.textContent = "✅ In-browser AI is ready — it will answer when cloud providers fail. Press ▶ Start.";
+    engine = null; cancelPrefetch(); void refreshKeyMarks();
+  } catch (e) { webllmStatus.textContent = `❌ ${explainError(e)}`; }
+  renderWebllmUI();
+};
+$("webllmClear").onclick = () => { clearWebllmModel(); engine = null; cancelPrefetch(); renderWebllmUI(); void refreshKeyMarks(); webllmStatus.textContent = "In-browser AI disabled."; };
+renderWebllmUI();
+
 void renderKeyUI();
 void refreshKeyMarks();
 renderProviderButtons();
@@ -227,9 +253,12 @@ function renderProviderNote() {
   }
   if (v === "local") {
     const lc = loadLocalConfig();
+    const wl = loadWebllmModel();
     $("providerNote").textContent = lc
-      ? `💻 Local AI is active — ${lc.server.label} · ${lc.model}. Runs on this device.`
-      : "💻 Local AI is active — no model selected yet. Open AI settings → 💻 Local AI → “🔄 Detect local models”.";
+      ? `💻 Local AI is active — ${lc.server.label} · ${lc.model}${wl ? " (in-browser AI ready as fallback)" : ""}. Runs on this device.`
+      : wl
+        ? "💻 Local AI is active — in-browser model ready. Tip: “🔄 Detect local models” also finds Ollama / LM Studio."
+        : "💻 Local AI is active — no model selected yet. Open AI settings → 💻 Local AI → “🔄 Detect local models” or enable in-browser AI.";
     return;
   }
   if (isByokId(v)) {
@@ -449,7 +478,7 @@ async function generateAndShow() {
     let lastErr: unknown = null;
     // True-agent loop: try the selected provider, then fall back through every other working one.
     for (const cand of chain) {
-      const name = choiceName(cand.id);
+      const name = choiceName(cand.id as ProviderChoice);
       try {
         status(`🤖 Agent: asking ${name}…`);
         const provider = await cand.build();

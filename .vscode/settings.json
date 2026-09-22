@@ -1,11 +1,4 @@
 {
-  // QuizMastermind workspace: keep Copilot out of the way so Cline is the default agent.
-  // Cline extension has no startup-task API; these settings just stop Copilot
-  // from burning tokens/inline suggestions while you work in the Cline sidebar.
   "github.copilot.enable": false,
-  "github.copilot.chat.showInSidebar": false,
-  "editor.inlineSuggest.enabled": false,
-  "chat.defaultMode": "agent",
-  // One-keypress launcher: Ctrl+Shift+B runs the auto-fallback harness task.
   "task.defaultBuildTask": "Cline: auto-fallback run (prompt)"
 }

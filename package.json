@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.1.0",
   "type": "module",
-  "description": "Quiz Mastermind — Vite/TS quiz app (Gemini/Groq/OpenRouter/NVIDIA/xAI + Ollama local GPU) with Cline auto-run harness scripts preserved",
+  "description": "Quiz Mastermind — Vite/TS quiz app with local Ollama support (no cloud/copilot required)",
   "engines": {
     "node": ">=22"
   },
@@ -12,7 +12,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "harness": "node auto-cline.mjs",
-    "ask": "node auto-cline.mjs --prompt"
+    "ask": "node auto-cline.mjs --prompt",
+    "local": "node auto-local.mjs",
+    "local-ask": "node auto-local.mjs --prompt"
   },
   "dependencies": {
     "@cline/sdk": "latest",

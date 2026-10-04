@@ -7,3 +7,4 @@ export async function cachePut(t: string, d: string, q: QuizQuestion) {
   if (list.some((x) => normalizeQuestion(x.question) === normalizeQuestion(q.question))) return;
   list.push(q); await idbSet(key(t, d), list.slice(-200));
 }
+export async function cacheClear(t: string, d: string) { await idbSet(key(t, d), []); }

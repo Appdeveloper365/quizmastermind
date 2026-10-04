@@ -1,11 +1,13 @@
 import { ProviderError, type QuizProvider } from "../providers/types";
 import { GeminiProvider } from "../providers/gemini";
-import { OpenAICompatibleProvider, GROQ_CFG, OPENROUTER_CFG, makeNvidiaCfg, XAI_CFG } from "../providers/openai-compatible";
+import { OpenAICompatibleProvider, GROQ_CFG, OPENROUTER_CFG, POLLINATIONS_CFG, XAI_CFG } from "../providers/openai-compatible";
+import { LocalProvider, loadLocalConfig } from "../providers/local";
+import { WebLlmProvider, loadWebllmModel } from "../providers/webllm";
 import { PuterProvider } from "../providers/puter";
 import { BYOK, BYOK_IDS, isByokId, type ByokId } from "../providers/registry";
 import { keyStore } from "../storage/keys";
 
-export type ProviderChoice = "auto" | ByokId | "puter";
+export type ProviderChoice = "auto" | ByokId | "puter" | "local";
 export interface SelectDeps {
   /** False when Puter.js isn't loaded / the user isn't signed in — Auto then skips Puter. */
   puterReady: boolean;
@@ -13,11 +15,11 @@ export interface SelectDeps {
 
 function makeByok(id: ByokId, key: string): QuizProvider {
   switch (id) {
-    case "gemini":     return new GeminiProvider(key);
-    case "groq":       return new OpenAICompatibleProvider(key, GROQ_CFG);
-    case "openrouter": return new OpenAICompatibleProvider(key, OPENROUTER_CFG);
-    case "nvidia":     return new OpenAICompatibleProvider(key, makeNvidiaCfg());
-    case "xai":        return new OpenAICompatibleProvider(key, XAI_CFG);
+    case "gemini":       return new GeminiProvider(key);
+    case "groq":         return new OpenAICompatibleProvider(key, GROQ_CFG);
+    case "openrouter":   return new OpenAICompatibleProvider(key, OPENROUTER_CFG);
+    case "pollinations": return new OpenAICompatibleProvider(key, POLLINATIONS_CFG);
+    case "xai":          return new OpenAICompatibleProvider(key, XAI_CFG);
   }
 }
 
@@ -26,15 +28,15 @@ export function makeByokFor(id: ByokId, key: string): QuizProvider {
   return makeByok(id, key);
 }
 
-/** Display name for menus (Puter/Auto are special — not in the BYOK registry). */
+/** Display name for menus (Puter/Local/Auto are special — not in the BYOK registry). */
 export const choiceName = (id: ProviderChoice): string =>
-  id === "puter" ? "Puter" : id === "auto" ? "Auto" : (BYOK[id]?.name ?? id);
+  id === "puter" ? "Puter" : id === "local" ? "Local AI" : id === "auto" ? "Auto" : (BYOK[id]?.name ?? id);
 
-export interface ProviderCandidate { id: ProviderChoice; build: () => Promise<QuizProvider>; }
+export interface ProviderCandidate { id: ProviderChoice | "webllm"; build: () => Promise<QuizProvider>; }
 
 /**
  * Agent-style ordered candidate list for a generation attempt.
- * Explicit choice first, then every other saved key, then Puter (if signed in).
+ * Explicit choice first, then every other saved key, then local, then Puter (if signed in).
  * Each build() resolves key + provider at call time so the chain always reflects the latest state.
  */
 export async function providerChain(choice: ProviderChoice, deps: SelectDeps): Promise<ProviderCandidate[]> {
@@ -51,11 +53,29 @@ export async function providerChain(choice: ProviderChoice, deps: SelectDeps): P
       return new PuterProvider();
     },
   });
-  // Explicit choice first — the single menu is the single source of truth.
+  const pushLocal = () => chain.push({
+    id: "local", build: async () => {
+      const cfg = loadLocalConfig();
+      if (!cfg) throw new ProviderError("unsupported", "No local model selected. Open AI settings → 💻 Local AI and press “🔄 Detect local models”.");
+      return new LocalProvider(cfg);
+    },
+  });
+  /** In-browser WebGPU model — the no-key offline fallback. Enabled from the 💻 Local AI tab. */
+  const pushWebllm = () => chain.push({
+    id: "webllm" as const, build: async () => {
+      const model = loadWebllmModel();
+      if (!model) throw new ProviderError("unsupported", "In-browser AI not enabled. Open AI settings → 💻 Local AI → “Run AI in this browser”.");
+      return new WebLlmProvider(model);
+    },
+  });
+  // Explicit choice first — the single selection is the single source of truth.
   if (isByokId(choice)) pushByok(choice);
   else if (choice === "puter") pushPuter();
-  // Auto: every saved key in registry order. Then failover backups: other saved keys + Puter.
+  else if (choice === "local") { pushLocal(); pushWebllm(); } // local tab covers both kinds of on-device AI
+  // Auto: every saved key in registry order, then local, then Puter, then in-browser WebLLM.
   for (const id of BYOK_IDS) if (!chain.some((c) => c.id === id) && await keyStore.has(id)) pushByok(id);
+  if (!chain.some((c) => c.id === "local") && loadLocalConfig()) pushLocal();
   if (deps.puterReady && !chain.some((c) => c.id === "puter")) pushPuter();
+  if (!chain.some((c) => c.id === "webllm") && loadWebllmModel()) pushWebllm();
   return chain;
 }

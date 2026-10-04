@@ -74,7 +74,7 @@ export class PuterProvider implements QuizProvider {
   }
 
   async generateRaw(p: GenerateParams): Promise<unknown> {
-    return this.call(SYSTEM_PROMPT, buildUserPrompt(p), { strict: QUIZ_JSON_SCHEMA, gemini: QUIZ_GEMINI_SCHEMA, name: "quiz_question" }, { temperature: 0.8, signal: p.signal });
+    return this.call(SYSTEM_PROMPT, buildUserPrompt(p), { strict: QUIZ_JSON_SCHEMA, gemini: QUIZ_GEMINI_SCHEMA, name: "quiz_question" }, { temperature: 1.0, signal: p.signal });
   }
 
   async chatJSON(system: string, user: string, schemas: JsonSchemas, opts: ChatOpts = {}): Promise<unknown> {

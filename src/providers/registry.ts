@@ -1,11 +1,11 @@
 /** Single source of truth for remote providers + models. Order = dropdown order = Auto priority. */
-export type ByokId = "gemini" | "groq" | "openrouter" | "nvidia" | "xai";
+export type ByokId = "gemini" | "groq" | "openrouter" | "pollinations" | "xai";
 
 export interface ByokInfo { id: ByokId; name: string; model: string; portalName: string; portalUrl: string; keyPrefix: string; steps: string; }
 
 export const BYOK: Record<ByokId, ByokInfo> = {
   gemini: {
-    id: "gemini", name: "Gemini", model: "gemini-2.5-flash",
+    id: "gemini", name: "Gemini", model: "gemini-3.6-flash",
     portalName: "Google AI Studio", portalUrl: "https://aistudio.google.com/", keyPrefix: "AIza...",
     steps: "Sign in with your Google account → “Create API key” → copy it. Free tier, no card needed.",
   },
@@ -14,10 +14,10 @@ export const BYOK: Record<ByokId, ByokInfo> = {
     portalName: "Groq Console", portalUrl: "https://console.groq.com/keys", keyPrefix: "gsk_...",
     steps: "Sign in (Google/GitHub/email) → “Create API Key” → copy it. Free tier, very fast.",
   },
-  nvidia: {
-    id: "nvidia", name: "NVIDIA NIM", model: "nvidia/nemotron-3.5-lightning-30b-a3b",
-    portalName: "NVIDIA Build", portalUrl: "https://build.nvidia.com/settings/api-keys", keyPrefix: "nvapi-...",
-    steps: "Free credits from build.nvidia.com → API Keys → “Generate API Key” → copy it. (Calls are routed through a preconfigured pass-through proxy automatically — no setup needed.)",
+  pollinations: {
+    id: "pollinations", name: "Pollinations", model: "openai/gpt-5.4-nano",
+    portalName: "Pollinations", portalUrl: "https://enter.pollinations.ai/keys", keyPrefix: "sk_...",
+    steps: "Sign in at enter.pollinations.ai (GitHub/Google) → create a key → copy it. Free pollen included, no card. One key routes to many models.",
   },
   openrouter: {
     id: "openrouter", name: "OpenRouter", model: "qwen/qwen3-235b-a22b:free",

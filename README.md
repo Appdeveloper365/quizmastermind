@@ -50,15 +50,24 @@ manifest.webmanifest, sw.js, icons/ are all relative-path; .nojekyll is included
 and other files serve correctly on Pages. An in-app "📲 Install as app" button appears via
 beforeinstallprompt (Android/Chrome/Edge desktop; iOS via Share → Add to Home Screen).
 
-## NVIDIA proxy (preconfigured — no setup needed)
+## Local AI models (Ollama / LM Studio / in-browser WebLLM)
 
-NVIDIA's API blocks direct browser calls (CORS), so NVIDIA traffic is routed through a tiny
-Cloudflare Worker pass-through proxy. A shared default is built into the app
-(https://quizmastermind-nvidia-proxy.gmailbox365.workers.dev) — users do nothing.
+The app can use models running **on your own device** — free, private, works offline:
 
-Want to use your own worker instead? From `cloudflare/`: `npx wrangler login` → `npx wrangler deploy`,
-then open AI settings → Use my API key → NVIDIA → expand "Advanced — NVIDIA proxy URL" and paste your
-`https://...workers.dev` URL. Your key is only forwarded through the worker to NVIDIA — never stored.
+1. **In-browser AI (WebLLM)** — no install, no key, no account: AI settings → 💻 Local AI →
+   "Run AI in this browser" → pick a compact model → Enable. The model downloads once
+   (Chrome/Edge with WebGPU), then generates questions fully offline. It's also the automatic
+   last-resort fallback when cloud providers fail.
+2. **Ollama / LM Studio** — install [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai)
+   and start it. (Ollama: `ollama pull llama3.2` then `ollama serve`. LM Studio: download a model
+   and start the local server.) Then press **💻 Local AI** → **🔄 Detect local models** — the app
+   probes localhost, finds the server and lists every installed model automatically.
+3. Pick a model → **💾 Use this model &amp; close**. No API key, no cloud, no account.
+
+## AI providers
+
+- **☁️ Puter** — free cloud AI on your own Puter account, no API key. Press **☁️ Puter**, sign in, done.
+- **🔑 Remote API key** — bring a free key from Gemini, Groq, Pollinations, OpenRouter or xAI. Press **🔑 Remote API key**, paste, save. (Pollinations: free key at enter.pollinations.ai/keys, no card — one key routes to many models.)
 
 ## Privacy policy
 

@@ -1,0 +1,42 @@
+
+> quiz-mastermind@1.1.0 dev
+> vite
+
+
+  VITE v6.4.3  ready in 125 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+Error:   Failed to scan for dependencies from entries:
+  /sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/index.html
+/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/public/privacy-policy.html
+
+  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mThe symbol "pointToSettings" has already been declared[0m
+
+    src/main.ts:380:9:
+[37m      380 │ function [32mpointToSettings[37m(tab: "puter" | "key" | "local") {
+          ╵          [32m~~~~~~~~~~~~~~~[0m
+
+  The symbol "pointToSettings" was originally declared here:
+
+    src/main.ts:275:9:
+[37m      275 │ function [32mpointToSettings[37m(tab: "puter" | "key" | "local") {
+          ╵          [32m~~~~~~~~~~~~~~~[0m
+
+  Duplicate top-level function declarations are not allowed in an ECMAScript module. This file is considered to be an ECMAScript module because of the use of "import.meta" here:
+
+    src/main.ts:18:94:
+[37m      18 │ ...serviceWorker.register(`${[32mimport.meta[37m.env.BASE_URL}sw.js`).catc...
+         ╵                              [32m~~~~~~~~~~~[0m
+
+
+    at failureErrorWithLog (/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:1467:15)
+    at /sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:924:7)
+    at /sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/sessions/dazzling-eager-archimedes/mnt/appdeveloper365/quizmastermind/quizmastermind/node_modules/esbuild/lib/main.js:581:7)

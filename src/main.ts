@@ -17,7 +17,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
 
-/* ---------- PWA install (Android/Chrome/Edge desktop; iOS uses Share → Add to Home Screen) ---------- */
+/* ---------- PWA install ---------- */
 let installPromptEvent: any = null;
 const installBtn = $<HTMLButtonElement>("installBtn");
 window.addEventListener("beforeinstallprompt", (ev) => {
@@ -33,8 +33,29 @@ installBtn.onclick = async () => {
   installBtn.hidden = true;
 };
 
+/* ---------- State ---------- */
+let engine: QuizEngine | null = null;
+let currentProviderId = "";
+const stats = loadStats();
+let score = 0, streak = 0;
+let abort: AbortController | null = null;
+let puterReady = false;
+
+/* ---------- Provider choice state (kept for compatibility) ---------- */
+let providerChoiceState: ProviderChoice = "auto";
+{
+  const stored = localStorage.getItem("quiz.provider") || "auto";
+  providerChoiceState = stored === "auto" || stored === "puter" || stored === "local" || isByokId(stored) ? stored as ProviderChoice : "auto";
+}
+const providerChoice = (): ProviderChoice => providerChoiceState;
+function setProviderChoice(v: ProviderChoice) {
+  providerChoiceState = v;
+  localStorage.setItem("quiz.provider", v);
+  engine = null; cancelPrefetch();
+  renderProviderButtons(); renderProviderNote(); void refreshKeyMarks();
+}
+
 /* ---------- Elements ---------- */
-/* ---------- Elements (three provider buttons: Puter / Remote key / Local) ---------- */
 const selPuter = $<HTMLButtonElement>("selPuter"), selRemote = $<HTMLButtonElement>("selRemote"), selLocal = $<HTMLButtonElement>("selLocal");
 const selPuterSub = $("selPuterSub"), selRemoteSub = $("selRemoteSub"), selLocalSub = $("selLocalSub");
 const keySettings = $<HTMLDetailsElement>("keySettings");
@@ -51,15 +72,7 @@ const keyFieldHint = $("keyFieldHint");
 const localDetect = $<HTMLButtonElement>("localDetect"), localTest = $<HTMLButtonElement>("localTest");
 const localModelSel = $<HTMLSelectElement>("localModelSel"), localStatus = $("localStatus");
 const localSave = $<HTMLButtonElement>("localSave"), localClear = $<HTMLButtonElement>("localClear");
-
-/* ---------- State ---------- */
-let engine: QuizEngine | null = null;
-let currentProviderId = "";
-const stats = loadStats();
-let score = 0, streak = 0;
-let abort: AbortController | null = null;
-/** Puter needs the CDN script + a signed-in account; Auto skips it otherwise. */
-let puterReady = false;
+const webllmModelSel = $<HTMLSelectElement>("webllmModel"), webllmStatus = $("webllmStatus");
 
 /* ---------- Preferences ---------- */
 topicInput.value = localStorage.getItem("quiz.topic") ?? "";
@@ -76,36 +89,21 @@ autoNext.onchange = () => setAuto(autoNext.checked);
 autoNextPref.onchange = () => setAuto(autoNextPref.checked);
 
 /* ---------- Provider selection (three one-line buttons) ---------- */
-let providerChoiceState: ProviderChoice = "auto";
 {
-  const stored = localStorage.getItem("quiz.provider") || "auto";
-  providerChoiceState = stored === "auto" || stored === "puter" || stored === "local" || isByokId(stored) ? stored as ProviderChoice : "auto";
-}
-const providerChoice = (): ProviderChoice => providerChoiceState;
-function setProviderChoice(v: ProviderChoice) {
-  providerChoiceState = v;
-  localStorage.setItem("quiz.provider", v);
-  engine = null; cancelPrefetch();
-  renderProviderButtons(); renderProviderNote(); void refreshKeyMarks();
-}
-selPuter.onclick = () => setProviderChoice("puter");
-selRemote.onclick = () => { setProviderChoice(isByokId(byokProvider.value) ? byokProvider.value as ByokId : BYOK_IDS[0]); keySettings.open = true; switchTab("key"); };
-selLocal.onclick = () => { setProviderChoice("local"); keySettings.open = true; switchTab("local"); };
-
-/* Inline provider list — one small button per remote provider, right under "Use your own API key". */
-const byokList = $("byokList");
-for (const id of BYOK_IDS) {
-  const b = document.createElement("button");
-  b.className = "small";
-  b.style.flex = "1";
-  b.dataset.byok = id;
-  b.onclick = () => {
-    byokProvider.value = id;
-    void renderKeyUI();
-    setProviderChoice(id);
-    keySettings.open = true; switchTab("key");
-  };
-  byokList.appendChild(b);
+  const byokList = $("byokList");
+  for (const id of BYOK_IDS) {
+    const b = document.createElement("button");
+    b.className = "small";
+    b.style.flex = "1";
+    b.dataset.byok = id;
+    b.onclick = () => {
+      byokProvider.value = id;
+      void renderKeyUI();
+      setProviderChoice(id);
+      keySettings.open = true; switchTab("key");
+    };
+    byokList.appendChild(b);
+  }
 }
 
 async function renderByokList() {
@@ -119,7 +117,7 @@ async function renderByokList() {
 
 function renderProviderButtons() {
   const active = providerChoiceState;
-  const on = (b: HTMLButtonElement, is: boolean) => { b.classList.toggle("primary", is); };
+  const on = (b: HTMLButtonElement, is: boolean) => { b.classList.toggle("primary", is); b.classList.toggle("secondary", !is); };
   on(selPuter, active === "puter"); on(selRemote, isByokId(active)); on(selLocal, active === "local");
   selPuterSub.textContent = puterReady ? "signed in ✓" : "free · sign in";
   selRemoteSub.textContent = isByokId(active) ? BYOK[active].name : "your API key";
@@ -129,15 +127,46 @@ function renderProviderButtons() {
   void renderByokList();
 }
 
+/* ---------- Refresh key marks ---------- */
 async function refreshKeyMarks() {
   const saved: string[] = [];
   for (const id of BYOK_IDS) {
     if (await keyStore.has(id)) saved.push(BYOK[id].name);
   }
-  const keyList = saved.length ? `keys saved: ${saved.join(", ")}` : "no API keys saved";
   const lc = loadLocalConfig();
   const wl = loadWebllmModel();
-  keySummary.textContent = `⚙️ AI settings — provider: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${keyList}${lc ? ` · local: ${lc.server.label} ${lc.model}` : ""}${wl ? " · in-browser AI on" : ""}`;
+  keySummary.textContent = `⚙️ AI settings — provider: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${saved.length ? `keys saved: ${saved.join(", ")}` : "no API keys saved"}${lc ? ` · local: ${lc.server.label} ${lc.model}` : ""}${wl ? " · in-browser AI on" : ""}`;
+}
+
+/* ---------- Provider note ---------- */
+function renderProviderNote() {
+  const v = providerChoiceState;
+  if (v === "puter") {
+    $("providerNote").textContent = puterReady
+      ? "☁️ Puter is active — signed in ✓. Your own-API keys stay saved but unused."
+      : "☁️ Puter is active — open AI settings → ☁️ Puter and press “Sign in with Puter”.";
+    return;
+  }
+  if (v === "local") {
+    const lc = loadLocalConfig();
+    const wl = loadWebllmModel();
+    $("providerNote").textContent = lc
+      ? `💻 Local AI is active — ${lc.server.label} · ${lc.model}${wl ? " (in-browser AI ready as fallback)" : ""}. Runs on this device.`
+      : wl
+        ? "💻 Local AI is active — in-browser model ready. Tip: “🔄 Detect local models” also finds Ollama / LM Studio."
+        : "💻 Local AI is active — no model selected yet. Open AI settings → 💻 Local AI → “🔄 Detect local models” or enable in-browser AI.";
+    return;
+  }
+  if (isByokId(v)) {
+    const k = BYOK[v];
+    void keyStore.has(v).then((has) => {
+      $("providerNote").textContent = has
+        ? `🔑 ${k.name} is active — key saved ✓.`
+        : `🔑 ${k.name} is active — no key saved yet. Open AI settings → 🔑 Remote API key.`;
+    });
+    return;
+  }
+  $("providerNote").textContent = "✨ Auto is active — the agent uses your first working key, then local, then Puter.";
 }
 
 /* ---------- Remote key tab ---------- */
@@ -216,7 +245,6 @@ localTest.onclick = async () => {
 };
 
 /* ---------- WebLLM (in-browser WebGPU) ---------- */
-const webllmModelSel = $<HTMLSelectElement>("webllmModel"), webllmStatus = $("webllmStatus");
 for (const m of WEBLLM_MODELS) webllmModelSel.appendChild(new Option(m.label, m.id));
 webllmModelSel.value = loadWebllmModel() ?? DEFAULT_WEBLLM_MODEL;
 function renderWebllmUI() {
@@ -238,51 +266,6 @@ $("webllmEnable").onclick = async () => {
 };
 $("webllmClear").onclick = () => { clearWebllmModel(); engine = null; cancelPrefetch(); renderWebllmUI(); void refreshKeyMarks(); webllmStatus.textContent = "In-browser AI disabled."; };
 renderWebllmUI();
-
-void renderKeyUI();
-void refreshKeyMarks();
-renderProviderButtons();
-
-function renderProviderNote() {
-  const v = providerChoiceState;
-  if (v === "puter") {
-    $("providerNote").textContent = puterReady
-      ? "☁️ Puter is active — signed in ✓. Your own-API keys stay saved but unused."
-      : "☁️ Puter is active — open AI settings → ☁️ Puter and press “Sign in with Puter”.";
-    return;
-  }
-  if (v === "local") {
-    const lc = loadLocalConfig();
-    const wl = loadWebllmModel();
-    $("providerNote").textContent = lc
-      ? `💻 Local AI is active — ${lc.server.label} · ${lc.model}${wl ? " (in-browser AI ready as fallback)" : ""}. Runs on this device.`
-      : wl
-        ? "💻 Local AI is active — in-browser model ready. Tip: “🔄 Detect local models” also finds Ollama / LM Studio."
-        : "💻 Local AI is active — no model selected yet. Open AI settings → 💻 Local AI → “🔄 Detect local models” or enable in-browser AI.";
-    return;
-  }
-  if (isByokId(v)) {
-    const k = BYOK[v];
-    void keyStore.has(v).then((has) => {
-      $("providerNote").textContent = has
-        ? `🔑 ${k.name} is active — key saved ✓.`
-        : `🔑 ${k.name} is active — no key saved yet. Open AI settings → 🔑 Remote API key.`;
-    });
-    return;
-  }
-  $("providerNote").textContent = "✨ Auto is active — the agent uses your first working key, then local, then Puter.";
-}
-/* ---------- Tabs ---------- */
-function switchTab(name: string) {
-  document.querySelectorAll<HTMLButtonElement>(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
-  document.querySelectorAll<HTMLElement>(".tabpane").forEach((p) => (p.hidden = p.id !== `tab-${name}`));
-}
-for (const t of Array.from(document.querySelectorAll<HTMLButtonElement>(".tab"))) {
-  t.onclick = () => switchTab(t.dataset.tab!);
-}
-document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((b) => {
-  b.onclick = async () => { await navigator.clipboard.writeText($(b.dataset.copy!).textContent ?? ""); b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500); };
-});
 
 /* ---------- Puter (free cloud, sign-in) ---------- */
 async function checkPuter() {
@@ -306,7 +289,6 @@ $("puterRecheck").onclick = () => void checkPuter();
 $("puterSignIn").onclick = async () => {
   try { await PuterProvider.signIn(); await checkPuter(); }
   catch (e) { status(`⚠️ ${(e as Error).message}`); return; }
-  // Immediately prove Puter recognizes the connection with a real round-trip.
   try {
     await new PuterProvider().verify();
     status("✅ Signed in — Puter recognized the connection (test call answered). Press ▶ Start.");
@@ -365,7 +347,6 @@ renderRecent();
 function renderStats() {
   $("stats").textContent = `Score ${score} · Streak ${streak} · Best streak ${stats.bestStreak} · High score ${stats.highScore} · Accuracy ${stats.played ? Math.round((100 * stats.correct) / stats.played) : 0}%`;
 }
-/** Silent first working engine for background prefetch (the visible quiz attempt narrates its own failover). */
 async function firstCandidateEngine(): Promise<QuizEngine> {
   const choice = providerChoice();
   if (engine && currentProviderId === choice) return engine;
@@ -476,7 +457,6 @@ async function generateAndShow() {
     if (!chain.length) throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — open AI settings.");
     const topic = topicInput.value.trim() || "General knowledge";
     let lastErr: unknown = null;
-    // True-agent loop: try the selected provider, then fall back through every other working one.
     for (const cand of chain) {
       const name = choiceName(cand.id as ProviderChoice);
       try {
@@ -565,4 +545,3 @@ $("testKey").onclick = async () => {
     status(`⚠️ ${info.name} test failed.`);
   }
 };
-

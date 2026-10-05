@@ -73,6 +73,7 @@ const localDetect = $<HTMLButtonElement>("localDetect"), localTest = $<HTMLButto
 const localModelSel = $<HTMLSelectElement>("localModelSel"), localStatus = $("localStatus");
 const localSave = $<HTMLButtonElement>("localSave"), localClear = $<HTMLButtonElement>("localClear");
 const webllmModelSel = $<HTMLSelectElement>("webllmModel"), webllmStatus = $("webllmStatus");
+const byokList = $("byokList");
 
 /* ---------- Preferences ---------- */
 topicInput.value = localStorage.getItem("quiz.topic") ?? "";
@@ -90,7 +91,6 @@ autoNextPref.onchange = () => setAuto(autoNextPref.checked);
 
 /* ---------- Provider selection (three one-line buttons) ---------- */
 {
-  const byokList = $("byokList");
   for (const id of BYOK_IDS) {
     const b = document.createElement("button");
     b.className = "small";
@@ -167,6 +167,15 @@ function renderProviderNote() {
     return;
   }
   $("providerNote").textContent = "✨ Auto is active — the agent uses your first working key, then local, then Puter.";
+}
+
+/* ---------- Tabs ---------- */
+function switchTab(name: string) {
+  document.querySelectorAll<HTMLButtonElement>(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
+  document.querySelectorAll<HTMLElement>(".tabpane").forEach((p) => (p.hidden = p.id !== `tab-${name}`));
+}
+for (const t of Array.from(document.querySelectorAll<HTMLButtonElement>(".tab"))) {
+  t.onclick = () => switchTab(t.dataset.tab!);
 }
 
 /* ---------- Remote key tab ---------- */

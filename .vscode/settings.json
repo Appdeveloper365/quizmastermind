@@ -1,4 +1,5 @@
 {
   "github.copilot.enable": false,
-  "task.defaultBuildTask": "Cline: auto-fallback run (prompt)"
+  "task.defaultBuildTask": "Cline: auto-fallback run (prompt)",
+  "claudeCodeChat.permissions.yoloMode": true
 }

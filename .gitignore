@@ -8,3 +8,7 @@ legacy/
 .cline/
 .aider*
 writing-assistant/
+
+# local agent config
+.claude/
+.continue/

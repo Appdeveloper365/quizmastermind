@@ -1,4 +1,4 @@
-const CACHE = "quiz-mastermind-v7";
+const CACHE = "quiz-mastermind-v8";
 // Relative paths so the same service worker works on GitHub Pages subpaths and custom domains.
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 

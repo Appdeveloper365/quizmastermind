@@ -1,4 +1,6 @@
 import { validateQuizQuestion, shuffleOptions, normalizeQuestion, type QuizQuestion } from "./schema";
+export { validateQuizQuestion, shuffleOptions, normalizeQuestion, OPTION_COUNT } from "./schema";
+export type { Validation } from "./schema";
 import type { Difficulty } from "./prompt";
 import { ProviderError, type QuizProvider } from "../providers/types";
 import { cacheGet, cachePut, cacheClear } from "../storage/cache";
@@ -8,8 +10,8 @@ export interface EngineOptions { maxAttempts?: number; reuseCache?: boolean; }
 
 const STOP = new Set(["the", "a", "an", "of", "in", "on", "at", "to", "is", "are", "was", "were", "which", "what", "who", "whom", "whose", "where", "when", "why", "how", "many", "much", "does", "do", "did", "can", "you", "name", "first", "last", "most", "and", "or", "for", "with", "by", "from"]);
 const tokens = (s: string) => new Set(normalizeQuestion(s).replace(/[^a-z0-9 ]/g, "").split(" ").filter((w) => w && !STOP.has(w)));
-/** Word-overlap (Jaccard) similarity — catches paraphrases that exact-match dedup misses. */
-function tooSimilar(a: string, b: string): boolean {
+/** Word-overlap (Jaccard) similarity — catches paraphrases that exact-match dedup misses. Exported for tests. */
+export function tooSimilar(a: string, b: string): boolean {
   const ta = tokens(a), tb = tokens(b);
   if (!ta.size || !tb.size) return false;
   let inter = 0;

@@ -367,7 +367,7 @@ async function firstCandidateEngine(): Promise<QuizEngine> {
   for (const cand of chain) {
     try {
       const provider = await cand.build();
-      engine = new QuizEngine(provider, { reuseCache: reuse.checked });
+      engine = new QuizEngine(provider, { reuseCache: reuse.checked, maxAttempts: provider.id === "webllm" ? 5 : 3 });
       currentProviderId = cand.id; return engine;
     } catch { /* keep prefetch silent */ }
   }
@@ -474,7 +474,7 @@ async function generateAndShow() {
       try {
         status(`🤖 Agent: asking ${name}…`);
         const provider = await cand.build();
-        const eng = new QuizEngine(provider, { reuseCache: reuse.checked });
+        const eng = new QuizEngine(provider, { reuseCache: reuse.checked, maxAttempts: provider.id === "webllm" ? 5 : 3 });
         const q = await eng.next(topic, currentDifficulty(), signal);
         engine = eng; currentProviderId = cand.id;
         renderQuestion(q); status(`Provider: ${provider.label}`);

@@ -29,16 +29,22 @@ export const QUIZ_GEMINI_SCHEMA = {
 export type Validation = { ok: true; value: QuizQuestion } | { ok: false; reason: string };
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
 
+/** Strips option letter/number prefixes the model loves to add ("A. Paris" → "Paris").
+ *  Position-based correctIndex is unaffected; without this, shuffling renders "A. B. Paris". */
+const optionPrefix = /^\s*(?:[A-Da-d]|\d{1,2})[.)]\s+/;
+const stripOptionPrefix = (s: string) => s.replace(optionPrefix, "");
+
 export function validateQuizQuestion(raw: unknown): Validation {
   if (typeof raw !== "object" || raw === null) return { ok: false, reason: "not an object" };
   const r = raw as Record<string, unknown>;
   if (typeof r.question !== "string" || r.question.trim().length < 8) return { ok: false, reason: "question missing/too short" };
   if (!Array.isArray(r.options) || r.options.length !== OPTION_COUNT) return { ok: false, reason: `need exactly ${OPTION_COUNT} options` };
   if (!r.options.every((o) => typeof o === "string" && o.trim().length > 0)) return { ok: false, reason: "empty/non-string option" };
-  if (new Set((r.options as string[]).map(norm)).size !== OPTION_COUNT) return { ok: false, reason: "duplicate options" };
+  const options = (r.options as string[]).map((o) => stripOptionPrefix(o.trim()));
+  if (new Set(options.map(norm)).size !== OPTION_COUNT) return { ok: false, reason: "duplicate options" };
   if (!Number.isInteger(r.correctIndex) || (r.correctIndex as number) < 0 || (r.correctIndex as number) >= OPTION_COUNT) return { ok: false, reason: "correctIndex out of range" };
   if (typeof r.explanation !== "string" || r.explanation.trim().length === 0) return { ok: false, reason: "explanation missing" };
-  return { ok: true, value: { question: r.question.trim(), options: (r.options as string[]).map((o) => o.trim()), correctIndex: r.correctIndex as number, explanation: r.explanation.trim() } };
+  return { ok: true, value: { question: r.question.trim(), options, correctIndex: r.correctIndex as number, explanation: r.explanation.trim() } };
 }
 
 /** Kills answer-position bias. */

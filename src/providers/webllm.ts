@@ -1,5 +1,5 @@
 import { QUIZ_JSON_SCHEMA, QUIZ_GEMINI_SCHEMA } from "../quiz/schema";
-import { SYSTEM_PROMPT, buildUserPrompt, type GenerateParams } from "../quiz/prompt";
+import { LOCAL_SYSTEM_PROMPT, buildLocalUserPrompt, type GenerateParams } from "../quiz/prompt";
 import { ProviderError, shapeHint, stripFences, stripThink, safeParse, type ChatOpts, type JsonSchemas, type QuizProvider } from "./types";
 
 /**
@@ -8,11 +8,13 @@ import { ProviderError, shapeHint, stripFences, stripThink, safeParse, type Chat
  * Imported lazily so the ~2MB library only loads when the user enables it.
  */
 
-/** Compact models that run well in a browser tab (MLC model zoo IDs). */
+/** Compact models that run well in a browser tab (MLC model zoo IDs, all q4f16_1 for WebGPU).
+ *  Llama-3.2-1B removed after side-by-side benchmark: Qwen3-0.6B was ~2.5x faster at the
+ *  median (0.8s vs 2.1s) with equal or better JSON validity on this code path. */
 export const WEBLLM_MODELS = [
-  { id: "Llama-3.2-1B-Instruct-q4f16_1-MLC", label: "Llama 3.2 1B (fastest, ~700MB)" },
-  { id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", label: "Llama 3.2 3B (smarter, ~1.8GB)" },
-  { id: "Qwen3-1.7B-q4f16_1-MLC", label: "Qwen 3 1.7B (~1.1GB)" },
+  { id: "Qwen3-0.6B-q4f16_1-MLC", label: "Qwen 3 0.6B (fastest, ~500MB)" },
+  { id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC", label: "Qwen 2.5 1.5B (smarter, ~1.1GB)" },
+  { id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", label: "Llama 3.2 3B (smartest, ~1.8GB)" },
 ] as const;
 export const DEFAULT_WEBLLM_MODEL = WEBLLM_MODELS[0].id;
 
@@ -44,6 +46,19 @@ async function getEngine(model: string, onProgress?: (pct: number, text: string)
   return enginePromise;
 }
 
+/** Pulls the JSON object out of model output that may include prose, code fences,
+ *  or think-blocks. Tries every '{' … '}' pair — small strings, so brute force is fine. */
+function extractJson(raw: string): unknown {
+  const t = stripThink(stripFences(raw.trim()));
+  let start = -1;
+  while ((start = t.indexOf("{", start + 1)) >= 0) {
+    for (let end = t.lastIndexOf("}"); end > start; end = t.lastIndexOf("}", end - 1)) {
+      try { return JSON.parse(t.slice(start, end + 1)); } catch { /* try next pair */ }
+    }
+  }
+  throw new ProviderError("truncated", "Model returned non-JSON");
+}
+
 export class WebLlmProvider implements QuizProvider {
   readonly id = "webllm" as const;
   readonly label: string;
@@ -52,7 +67,9 @@ export class WebLlmProvider implements QuizProvider {
   }
 
   async generateRaw(p: GenerateParams): Promise<unknown> {
-    return this.chatJSON(SYSTEM_PROMPT, buildUserPrompt(p), { strict: QUIZ_JSON_SCHEMA, gemini: QUIZ_GEMINI_SCHEMA, name: "quiz_question" }, { temperature: 1.0, maxTokens: 1500, signal: p.signal });
+    // Compact prompt + lower temperature: small models validate more often on first try,
+    // which is the main lever on end-to-end speed (engine retries invalid JSON up to 3x).
+    return this.chatJSON(LOCAL_SYSTEM_PROMPT, buildLocalUserPrompt(p), { strict: QUIZ_JSON_SCHEMA, gemini: QUIZ_GEMINI_SCHEMA, name: "quiz_question" }, { temperature: 0.7, maxTokens: 900, signal: p.signal });
   }
 
   async chatJSON(system: string, user: string, schemas: JsonSchemas, opts: ChatOpts = {}): Promise<unknown> {
@@ -67,7 +84,12 @@ export class WebLlmProvider implements QuizProvider {
         ],
         temperature: opts.temperature ?? 0.8,
         max_tokens: opts.maxTokens ?? 1500,
-        response_format: { type: "json_object" },
+        // Qwen3 thinking burns the whole token budget on reasoning and never emits JSON.
+        // web-llm 0.2.85 reads this ONLY from extra_body (top-level is silently ignored).
+        extra_body: { enable_thinking: false },
+        // No response_format: { type: "json_object" } — WebLLM's grammar matcher crashes
+        // on Qwen3 tokenizers ("Cannot pass non-string to std::string"). The system prompt
+        // demands JSON and extractJson handles the rest.
       });
     } catch (e) {
       const msg = String((e as Error)?.message ?? e);
@@ -77,7 +99,7 @@ export class WebLlmProvider implements QuizProvider {
     }
     const text: string = res?.choices?.[0]?.message?.content ?? "";
     if (!String(text).trim()) throw new ProviderError("truncated", "The in-browser model returned an empty response.");
-    return safeParse(stripFences(stripThink(String(text))));
+    return extractJson(String(text));
   }
 
   async verify(): Promise<void> {

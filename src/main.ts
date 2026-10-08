@@ -255,7 +255,10 @@ localTest.onclick = async () => {
 
 /* ---------- WebLLM (in-browser WebGPU) ---------- */
 for (const m of WEBLLM_MODELS) webllmModelSel.appendChild(new Option(m.label, m.id));
-webllmModelSel.value = loadWebllmModel() ?? DEFAULT_WEBLLM_MODEL;
+// Migrate users whose saved model was removed from the list (or was never set).
+const savedModel = loadWebllmModel();
+if (savedModel && !WEBLLM_MODELS.some((m) => m.id === savedModel)) saveWebllmModel(DEFAULT_WEBLLM_MODEL);
+webllmModelSel.value = savedModel && WEBLLM_MODELS.some((m) => m.id === savedModel) ? savedModel : DEFAULT_WEBLLM_MODEL;
 function renderWebllmUI() {
   const saved = loadWebllmModel();
   webllmStatus.textContent = saved

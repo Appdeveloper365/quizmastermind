@@ -77,3 +77,15 @@ test("shuffleOptions with fixed rng is deterministic", () => {
 test("normalizeQuestion collapses case and whitespace", () => {
   expect(normalizeQuestion("  What   IS the CAPITAL  ")).toBe("what is the capital");
 });
+
+test("option letter/number prefixes are stripped for rendering", () => {
+  const v = validateQuizQuestion({ ...good, options: ["A. Paris", "B) Lyon", "3. Marseille", "D) Nice"] });
+  expect(v.ok).toBe(true);
+  if (v.ok) expect(v.value.options).toEqual(["Paris", "Lyon", "Marseille", "Nice"]);
+});
+
+test("options that only differ by their letter prefix are rejected as duplicates", () => {
+  const v = validateQuizQuestion({ ...good, options: ["A. Paris", "B. Paris", "C. Lyon", "D. Nice"] });
+  expect(v.ok).toBe(false);
+  if (!v.ok) expect(v.reason).toMatch(/duplicate/);
+});

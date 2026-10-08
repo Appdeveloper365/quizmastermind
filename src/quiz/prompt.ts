@@ -24,6 +24,22 @@ const STYLES = [
   "a 'what is it known for' question", "a question about a first, a record or a superlative",
 ];
 
+/** Compact prompt for small in-browser models — short context, easy-to-follow JSON shape.
+ *  Large prompt plumbing (angles/styles/nonces/long avoid-lists) makes 0.5-1B models emit
+ *  invalid JSON; keeping it minimal raises first-attempt validity = faster question generation. */
+export const LOCAL_SYSTEM_PROMPT =
+  "You are a quiz host. Reply with ONE JSON object only, no markdown, no commentary before or after. " +
+  "Shape: {\"question\": string, \"options\": [4 distinct strings], \"correctIndex\": 0-3, \"explanation\": string}. " +
+  "Rules: exactly one correct option; all 4 options must be DIFFERENT from each other; " +
+  "options are plain text — NEVER begin an option with a letter, number or \"A.\" style prefix; " +
+  "write direct factual trivia, never a question about questions; suitable for all ages; " +
+  "correctIndex must match the correct option's position in the options array.";
+
+export function buildLocalUserPrompt(p: GenerateParams): string {
+  const avoid = p.avoid.length ? `\nDo not repeat these: ${p.avoid.slice(-8).join(" | ")}` : "";
+  return `Topic: ${p.topic}\nDifficulty: ${p.difficulty}${avoid}`;
+}
+
 export function buildUserPrompt(p: GenerateParams): string {
   const angle = ANGLES[Math.floor(Math.random() * ANGLES.length)];
   const style = STYLES[Math.floor(Math.random() * STYLES.length)];

@@ -58,7 +58,7 @@ function setProviderChoice(v: ProviderChoice) {
 /* ---------- Elements ---------- */
 const selPuter = $<HTMLButtonElement>("selPuter"), selRemote = $<HTMLButtonElement>("selRemote"), selLocal = $<HTMLButtonElement>("selLocal");
 const selPuterSub = $("selPuterSub"), selRemoteSub = $("selRemoteSub"), selLocalSub = $("selLocalSub");
-const keySettings = $<HTMLDetailsElement>("keySettings");
+const keySettings = $<HTMLElement>("keySettings");
 const keySummary = $("keySummary");
 const topicInput = $<HTMLInputElement>("topic");
 const difficultySel = $<HTMLSelectElement>("difficulty");
@@ -100,7 +100,7 @@ autoNextPref.onchange = () => setAuto(autoNextPref.checked);
       byokProvider.value = id;
       void renderKeyUI();
       setProviderChoice(id);
-      keySettings.open = true; switchTab("key");
+      switchTab("key");
     };
     byokList.appendChild(b);
   }
@@ -120,7 +120,7 @@ function renderProviderButtons() {
   const on = (b: HTMLButtonElement, is: boolean) => { b.classList.toggle("primary", is); b.classList.toggle("secondary", !is); };
   on(selPuter, active === "puter"); on(selRemote, isByokId(active)); on(selLocal, active === "local");
   selPuterSub.textContent = puterReady ? "signed in ✓" : "free · sign in";
-  selRemoteSub.textContent = isByokId(active) ? BYOK[active].name : "your API key";
+  selRemoteSub.textContent = isByokId(active) ? BYOK[active].name : "no key saved yet";
   const lc = loadLocalConfig();
   selLocalSub.textContent = lc ? lc.model : "on this device";
   byokList.style.display = isByokId(active) || active === "auto" ? "" : "none";
@@ -171,6 +171,7 @@ function renderProviderNote() {
 
 /* ---------- Tabs ---------- */
 function switchTab(name: string) {
+  keySettings.dataset.tab = name; // drives the per-tab accent colour
   document.querySelectorAll<HTMLButtonElement>(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
   document.querySelectorAll<HTMLElement>(".tabpane").forEach((p) => (p.hidden = p.id !== `tab-${name}`));
 }
@@ -233,7 +234,6 @@ localSave.onclick = () => {
   if (!m) { localStatus.textContent = "Detect local models first, then pick one."; return; }
   saveLocalConfig({ server: m.server, model: m.model });
   setProviderChoice("local");
-  keySettings.open = false;
   status(`✅ Local model set: ${m.server.label} · ${m.model}. Press ▶ Start.`);
 };
 localClear.onclick = () => {
@@ -314,9 +314,9 @@ $("puterSignOut").onclick = async () => {
   status("Signed out of Puter.");
 };
 $("usePuter").onclick = () => {
-  if (!puterReady) return status("Sign in to Puter first, then press “Use Puter & close”.");
+  if (!puterReady) return status("Sign in to Puter first, then press “Use Puter”.");
   setProviderChoice("puter");
-  keySettings.open = false; status("Provider set to Puter (auto model). Press ▶ Start.");
+  status("Provider set to Puter (auto model). Press ▶ Start.");
 };
 $("puterTest").onclick = async () => {
   const res = $("puterTestResult");
@@ -377,13 +377,12 @@ const currentTopic = () => topicInput.value.trim() || "General knowledge";
 const currentDifficulty = () => difficultySel.value as Difficulty;
 
 function pointToSettings(tab: "puter" | "key" | "local") {
-  keySettings.open = true;
   switchTab(tab);
   keySettings.classList.remove("attention"); void keySettings.offsetWidth; keySettings.classList.add("attention");
   if (!keySettings.querySelector(".start-here")) {
     const tag = document.createElement("div"); tag.className = "start-here";
-    tag.textContent = tab === "puter" ? "👉 Start here: press “Sign in with Puter” (no key to paste) — or use the API-key tab for stronger models" : tab === "local" ? "👉 Start here: install Ollama or LM Studio, start it, then press “🔄 Detect local models”" : "👉 Start here: pick a provider → click its link to get a free key → paste → Save & close";
-    keySettings.querySelector("summary")!.insertAdjacentElement("afterend", tag);
+    tag.textContent = tab === "puter" ? "👉 Start here: press “Sign in with Puter” (no key to paste) — or use the API-key tab for stronger models" : tab === "local" ? "👉 Start here: install Ollama or LM Studio, start it, then press “🔄 Detect local models”" : "👉 Start here: pick a provider → click its link to get a free key → paste → Save key";
+    keySettings.querySelector("h3")!.insertAdjacentElement("afterend", tag);
   }
   keySettings.scrollIntoView({ behavior: "smooth", block: "start" });
   setTimeout(() => keySettings.classList.remove("attention"), 7000);
@@ -512,7 +511,7 @@ $("saveClose").onclick = async () => {
   await keyStore.save(id, key);
   setProviderChoice(id);
   await refreshKeyMarks(); await renderKeyUI();
-  keySettings.querySelector(".start-here")?.remove(); keySettings.classList.remove("attention"); keySettings.open = false;
+  keySettings.querySelector(".start-here")?.remove(); keySettings.classList.remove("attention");
   $("start").scrollIntoView({ behavior: "smooth", block: "center" });
   status(`✅ ${info.name} key saved. Provider set to “${info.name}”. Press ▶ Start.`);
 };
@@ -528,7 +527,6 @@ $("clearKey").onclick = async () => {
   await refreshKeyMarks(); renderProviderNote(); await renderKeyUI();
   status(`Cleared ${BYOK[id].name} key. The app's agent will fall back to your other working providers.`);
 };
-$("closeSettings").onclick = () => { keySettings.open = false; };
 $("resetHistory").onclick = async () => {
   const topic = currentTopic(); await QuizEngine.resetHistory(topic, currentDifficulty()); cancelPrefetch();
   status(`🔄 Forgot your history for "${topic}" (${difficultySel.value}).`);

@@ -43,15 +43,18 @@
   <title>Quiz Mastermind</title>
   <script src="https://js.puter.com/v2/"></script>
   <style>
-    body{font-family:system-ui;max-width:980px;margin:2rem auto;padding:0 1rem;line-height:1.4}
+    body{font-family:system-ui;max-width:1160px;margin:2rem auto;padding:0 1rem;line-height:1.4}
     h1{margin:.2rem 0 .6rem}h1 small{font-size:.5em;color:#777;font-weight:400;margin-left:.5rem}
     button{padding:.6rem 1rem;margin:.25rem 0;width:100%;text-align:left;cursor:pointer}
     input:disabled{background:#f1f1f1;color:#777;border-color:#ddd;cursor:not-allowed}
     button.correct{background:#c8f7c5}button.wrong{background:#f7c5c5}button:disabled{cursor:default}
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1}
+    .row.stack{flex-direction:column;flex-wrap:nowrap}.row.stack>*{flex:0 0 auto}
     #status{font-size:.9rem;color:#555}#explain{margin-top:1rem;padding:.75rem;background:#f4f4f4;display:none}
-    details{margin:1rem 0;padding:.5rem .75rem;border:1px solid #ddd;border-radius:8px}
-    summary{cursor:pointer;font-weight:600}
+    #config{display:flex;flex-direction:column;gap:.75rem;position:sticky;top:1rem;max-height:calc(100vh - 2rem);overflow-y:auto;padding-right:.15rem}
+    .panel{background:#fafafa;border:1px solid #e5e5e5;border-radius:10px;padding:.75rem}
+    .panel h3{margin:.1rem 0 .5rem;font-size:.95rem}
+    .panel hr{border:0;border-top:1px solid #eee;margin:.9rem 0}
     label{display:block;margin:.5rem 0;font-size:.9rem}
     label.inline{display:flex;align-items:center;gap:.35rem;margin:0;flex:0 0 auto;white-space:nowrap}
     .field{margin:.75rem 0}.field label{display:block;margin-bottom:.25rem}
@@ -61,17 +64,22 @@
     .primary{background:#e0b000;font-weight:700;border:0;border-radius:6px}.primary:hover{background:#f0c020}.primary:disabled{background:#eee;color:#888}
     code{background:#f2f2f2;padding:.1rem .3rem;border-radius:3px}
     .cmd{display:flex;gap:.4rem;align-items:center;margin:.3rem 0}.cmd code{flex:1;padding:.4rem .5rem;overflow-x:auto;white-space:nowrap}.cmd button{width:auto;margin:0;padding:.35rem .6rem}
+    #keySettings{--accent:#e0b000}
+    #keySettings[data-tab="puter"]{--accent:#0ea5e9}
+    #keySettings[data-tab="key"]{--accent:#8b5cf6}
+    #keySettings[data-tab="local"]{--accent:#10b981}
     .tabs{display:flex;gap:.4rem;margin:.4rem 0 .6rem}
-    .tab{width:auto;flex:1;text-align:center;border:1px solid #ccc;border-radius:6px;background:#fff;font-weight:600}.tab.active{background:#e0b000;border-color:#e0b000}
+    .tab{width:auto;flex:1;text-align:center;border:1px solid #ccc;border-radius:6px;background:#fff;font-weight:600;transition:background .15s,border-color .15s}
+    .tab:hover:not(.active){background:#f4f4f5}
+    .tab.active{background:var(--accent);border-color:#111}
+    .tabpane{border-left:3px solid var(--accent);padding-left:.6rem}
     .badge{display:inline-block;padding:.1rem .5rem;border-radius:999px;font-size:.75rem;font-weight:600}
     .badge.ok{background:#c8f7c5;color:#1b5e20}.badge.off{background:#f7c5c5;color:#b71c1c}.badge.wait{background:#fff3c4;color:#7a5a00}
-    details.attention{border:2px solid #e0b000;animation:pulse 1.2s ease-out 5}
+    .attention{border:2px solid #e0b000;animation:pulse 1.2s ease-out 5}
     .start-here{background:#fff3c4;border-left:5px solid #e0b000;padding:.5rem .75rem;margin:.5rem 0 .25rem;font-weight:600}
     @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,176,0,.85)}100%{box-shadow:0 0 0 14px rgba(224,176,0,0)}}
 
-    .layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:1.25rem;align-items:start}
-    #side{position:sticky;top:1rem;background:#fafafa;border:1px solid #e5e5e5;border-radius:10px;padding:.75rem}
-    #side h3{margin:.1rem 0 .5rem;font-size:.95rem}
+    .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:1.25rem;align-items:start}
     #historyList{display:flex;flex-direction:column;gap:.45rem;perspective:600px}
     .hist{background:#fff;border:1px solid #ddd;border-radius:6px;padding:.45rem .6rem;font-size:.8rem;transform-origin:top center;transition:opacity .7s ease,transform .7s ease,filter .7s ease}
     .hist.ok{border-left:4px solid #4caf50}.hist.bad{border-left:4px solid #e53935}
@@ -83,7 +91,7 @@
     .hist:hover{opacity:1!important;transform:none!important;filter:none!important}
     @keyframes slideIn{from{opacity:0;transform:translateY(-16px) scale(1.02)}to{opacity:1;transform:none}}
     #nextBar{margin-top:.75rem}.bar{height:5px;background:#eee;border-radius:3px;overflow:hidden;margin-top:.3rem}#nextFill{height:100%;width:0;background:#e0b000;transition:width .1s linear}
-    @media (max-width:820px){.layout{grid-template-columns:1fr}#side{position:static;order:2}#historyList{flex-direction:row;overflow-x:auto;padding-bottom:.25rem}.hist{min-width:210px;max-width:210px;transform-origin:left center}}
+    @media (max-width:900px){.layout{grid-template-columns:1fr}#config{position:static;max-height:none;overflow:visible}#historyList{flex-direction:row;overflow-x:auto;padding-bottom:.25rem}.hist{min-width:210px;max-width:210px;transform-origin:left center}}
   </style>
 </head>
 <body>
@@ -114,41 +122,36 @@
   </div>
 
   <div class="layout">
-    <main>
-      <div class="field" style="margin:.25rem 0 .5rem">
-        <div class="row">
-          <input id="topic" placeholder="Type your subject — e.g. Ancient Egypt, Python basics, 90s pop music" />
-          <select id="difficulty"><option>easy</option><option selected>medium</option><option>hard</option></select>
+    <aside id="config">
+      <section class="panel">
+        <h3>🧠 AI connection</h3>
+        <div class="field" style="margin:0">
+          <div class="row stack" style="align-items:stretch">
+            <button id="selPuter" class="primary" style="width:auto">☁️ Puter <small id="selPuterSub" style="font-weight:400"></small></button>
+            <button id="selRemote" style="width:auto">🔑 Use your own API key <small id="selRemoteSub" style="font-weight:400"></small></button>
+            <button id="selLocal" style="width:auto">💻 Local AI <small id="selLocalSub" style="font-weight:400"></small></button>
+          </div>
+          <div id="byokList" class="row" style="margin-top:.4rem"></div>
+          <small class="hint" id="providerNote"></small>
         </div>
-        <small class="hint">💡 Type any subject and press <b>Start</b> — the AI writes a <b>fresh question every time</b>. Answered questions are remembered on this device so nothing repeats, even after you reopen the app.</small>
-      </div>
+      </section>
 
-      <div class="field">
-        <label><b>AI provider</b> — pick one:</label>
-        <div class="row" style="align-items:stretch">
-          <button id="selPuter" class="primary" style="width:auto;flex:1">☁️ Puter <small id="selPuterSub" style="font-weight:400"></small></button>
-          <button id="selRemote" style="width:auto;flex:1">🔑 Use your own API key <small id="selRemoteSub" style="font-weight:400"></small></button>
-          <button id="selLocal" style="width:auto;flex:1">💻 Local AI <small id="selLocalSub" style="font-weight:400"></small></button>
-        </div>
-        <div id="byokList" class="row" style="margin-top:.4rem"></div>
-        <small class="hint" id="providerNote"></small>
-      </div>
-
-      <details id="keySettings">
-        <summary id="keySummary">⚙️ AI settings</summary>
+      <section id="keySettings" class="panel" data-tab="puter">
+        <h3>⚙️ AI settings</h3>
+        <small class="hint" id="keySummary"></small>
         <div class="tabs">
           <button class="tab active" data-tab="puter">☁️ Puter</button>
-          <button class="tab" data-tab="key">🔑 Remote API key</button>
-          <button class="tab" data-tab="local">💻 Local AI</button>
+          <button class="tab" data-tab="key">🔑 API key</button>
+          <button class="tab" data-tab="local">💻 Local</button>
         </div>
 
         <!-- ---------- PUTER TAB ---------- -->
         <section id="tab-puter" class="tabpane">
           <p style="margin:.2rem 0 .4rem">Status: <span id="puterBadge" class="badge wait">checking…</span> <button id="puterRecheck" class="small">Re-check</button></p>
           <small class="hint">Puter is free cloud AI on <b>your own</b> Puter account (the “user-pays” model — no API key for you to manage, and the developer pays nothing). Sign in with a Puter account; there's no Google/other option, but sign-up takes seconds and one account works across every Puter app.</small>
-          <div class="row" style="margin-top:.5rem">
+          <div class="row stack" style="margin-top:.5rem">
             <button id="puterSignIn" class="primary" style="width:auto"> Sign in with Puter</button>
-            <button id="usePuter" style="width:auto">✅ Use Puter &amp; close</button>
+            <button id="usePuter" style="width:auto">✅ Use Puter</button>
             <button id="puterSignOut" class="small" style="width:auto">Sign out</button>
           </div>
           <small class="hint" id="puterUser"></small>
@@ -169,8 +172,8 @@
             <input id="keyInput" type="password" autocomplete="off" placeholder="AIza..." />
             <small class="hint" id="keyFieldHint"></small>
           </div>
-          <div class="row">
-            <button id="saveClose" class="primary" style="width:auto">💾 Save &amp; close settings</button>
+          <div class="row stack">
+            <button id="saveClose" class="primary" style="width:auto">💾 Save key</button>
             <button id="replaceKey" style="width:auto" hidden>✏️ Replace key</button>
             <button id="testKey" style="width:auto">🔌 Test connection</button>
             <button id="clearKey" style="width:auto">🗑 Clear this key</button>
@@ -191,11 +194,11 @@
             <small class="hint" id="localStatus"></small>
           </div>
           <div class="row">
-            <button id="localSave" class="primary" style="width:auto">💾 Use this model &amp; close</button>
+            <button id="localSave" class="primary" style="width:auto">💾 Use this model</button>
             <button id="localClear" class="small" style="width:auto">🗑 Forget local model</button>
           </div>
 
-          <hr style="border:0;border-top:1px solid #eee;margin:.9rem 0" />
+          <hr />
           <label><b>🌐 Run AI in this browser (WebLLM)</b> — no install, no key, no account</label>
           <small class="hint" id="webllmHint">Downloads a compact model once (Chrome/Edge with WebGPU), then generates questions fully offline — the automatic fallback when cloud providers fail.</small>
           <div class="field">
@@ -208,14 +211,29 @@
           <small class="hint" id="webllmStatus"></small>
         </section>
 
-        <hr style="border:0;border-top:1px solid #eee;margin:.9rem 0" />
+        <hr />
         <label><input type="checkbox" id="autoNextPref" /> ⏭ Auto-advance to the next question after a short countdown</label>
         <label><input type="checkbox" id="reuse" /> ♻️ Reuse saved questions first when available (saves API credits)</label>
+        <button id="resetHistory" class="small">🔄 Forget what I've seen for the current subject (clears saved questions too)</button>
+      </section>
+
+      <section class="panel">
+        <h3>🕘 Recent answers</h3>
+        <div id="historyList"></div>
+        <button id="clearRecent" class="small" style="margin-top:.5rem">Clear list</button>
+        <button id="installBtn" class="small" hidden style="margin-top:.4rem">📲 Install as app (PWA)</button>
+        <a class="hint" href="https://github.com/appdeveloper365/quizmastermind/releases" target="_blank" rel="noopener" style="display:block;margin-top:.5rem">🤖 Android APK — GitHub Releases</a>
+      </section>
+    </aside>
+
+    <main>
+      <div class="field" style="margin:.25rem 0 .5rem">
         <div class="row">
-          <button id="resetHistory" class="small">🔄 Forget what I've seen for the current subject (clears saved questions too)</button>
-          <button id="closeSettings" class="small">Close</button>
+          <input id="topic" placeholder="Type your subject — e.g. Ancient Egypt, Python basics, 90s pop music" />
+          <select id="difficulty"><option>easy</option><option selected>medium</option><option>hard</option></select>
         </div>
-      </details>
+        <small class="hint">💡 Type any subject and press <b>Start</b> — the AI writes a <b>fresh question every time</b>. Answered questions are remembered on this device so nothing repeats, even after you reopen the app.</small>
+      </div>
 
       <button id="start" class="primary">▶ Start / Next question</button>
       <p id="status"></p>
@@ -231,14 +249,6 @@
       </div>
       <p id="stats"></p>
     </main>
-
-    <aside id="side">
-      <h3>🕘 Recent answers</h3>
-      <div id="historyList"></div>
-      <button id="clearRecent" class="small" style="margin-top:.5rem">Clear list</button>
-      <button id="installBtn" class="small" hidden style="margin-top:.4rem">📲 Install as app (PWA)</button>
-      <a class="hint" href="https://github.com/appdeveloper365/quizmastermind/releases" target="_blank" rel="noopener" style="display:block;margin-top:.5rem">🤖 Android APK — GitHub Releases</a>
-    </aside>
   </div>
 
   <script type="module" src="/src/main.ts"></script>

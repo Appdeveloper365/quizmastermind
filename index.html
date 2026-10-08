@@ -64,15 +64,12 @@
     .primary{background:#e0b000;font-weight:700;border:0;border-radius:6px}.primary:hover{background:#f0c020}.primary:disabled{background:#eee;color:#888}
     code{background:#f2f2f2;padding:.1rem .3rem;border-radius:3px}
     .cmd{display:flex;gap:.4rem;align-items:center;margin:.3rem 0}.cmd code{flex:1;padding:.4rem .5rem;overflow-x:auto;white-space:nowrap}.cmd button{width:auto;margin:0;padding:.35rem .6rem}
-    #keySettings{--accent:#e0b000}
-    #keySettings[data-tab="puter"]{--accent:#0ea5e9}
-    #keySettings[data-tab="key"]{--accent:#8b5cf6}
-    #keySettings[data-tab="local"]{--accent:#10b981}
-    .tabs{display:flex;gap:.4rem;margin:.4rem 0 .6rem}
-    .tab{width:auto;flex:1;text-align:center;border:1px solid #ccc;border-radius:6px;background:#fff;font-weight:600;transition:background .15s,border-color .15s}
-    .tab:hover:not(.active){background:#f4f4f5}
-    .tab.active{background:var(--accent);border-color:#111}
-    .tabpane{border-left:3px solid var(--accent);padding-left:.6rem}
+    #connection{--accent:#e0b000}
+    #connection[data-tab="puter"]{--accent:#0ea5e9}
+    #connection[data-tab="key"]{--accent:#8b5cf6}
+    #connection[data-tab="local"]{--accent:#10b981}
+    .config-pane{border-left:3px solid var(--accent);padding-left:.6rem}
+    .panel>.hint{margin-top:.4rem}
     .badge{display:inline-block;padding:.1rem .5rem;border-radius:999px;font-size:.75rem;font-weight:600}
     .badge.ok{background:#c8f7c5;color:#1b5e20}.badge.off{background:#f7c5c5;color:#b71c1c}.badge.wait{background:#fff3c4;color:#7a5a00}
     .attention{border:2px solid #e0b000;animation:pulse 1.2s ease-out 5}
@@ -123,7 +120,7 @@
 
   <div class="layout">
     <aside id="config">
-      <section class="panel">
+      <section id="connection" class="panel" data-tab="puter">
         <h3>🧠 AI connection</h3>
         <div class="field" style="margin:0">
           <div class="row stack" style="align-items:stretch">
@@ -134,24 +131,14 @@
           <div id="byokList" class="row" style="margin-top:.4rem"></div>
           <small class="hint" id="providerNote"></small>
         </div>
-      </section>
+        <hr />
 
-      <section id="keySettings" class="panel" data-tab="puter">
-        <h3>⚙️ AI settings</h3>
-        <small class="hint" id="keySummary"></small>
-        <div class="tabs">
-          <button class="tab active" data-tab="puter">☁️ Puter</button>
-          <button class="tab" data-tab="key">🔑 API key</button>
-          <button class="tab" data-tab="local">💻 Local</button>
-        </div>
-
-        <!-- ---------- PUTER TAB ---------- -->
-        <section id="tab-puter" class="tabpane">
+        <!-- ---------- PUTER ---------- -->
+        <section id="pane-puter" class="config-pane">
           <p style="margin:.2rem 0 .4rem">Status: <span id="puterBadge" class="badge wait">checking…</span> <button id="puterRecheck" class="small">Re-check</button></p>
           <small class="hint">Puter is free cloud AI on <b>your own</b> Puter account (the “user-pays” model — no API key for you to manage, and the developer pays nothing). Sign in with a Puter account; there's no Google/other option, but sign-up takes seconds and one account works across every Puter app.</small>
           <div class="row stack" style="margin-top:.5rem">
             <button id="puterSignIn" class="primary" style="width:auto"> Sign in with Puter</button>
-            <button id="usePuter" style="width:auto">✅ Use Puter</button>
             <button id="puterSignOut" class="small" style="width:auto">Sign out</button>
           </div>
           <small class="hint" id="puterUser"></small>
@@ -160,8 +147,8 @@
           <small class="hint">No model to pick — Puter chooses one automatically on their end. All this app needs is for Puter to <b>recognize the connection</b>: sign in, then press <b>Test connection</b>. (If you skip signing in here, Puter pops its own sign-in on the first question.)</small>
         </section>
 
-        <!-- ---------- REMOTE KEY TAB ---------- -->
-        <section id="tab-key" class="tabpane" hidden>
+        <!-- ---------- REMOTE KEY ---------- -->
+        <section id="pane-key" class="config-pane" hidden>
           <div class="field">
             <label for="byokProvider"><b>Provider</b></label>
             <select id="byokProvider"></select>
@@ -181,8 +168,8 @@
           <small class="hint" id="testResult"></small>
         </section>
 
-        <!-- ---------- LOCAL AI TAB ---------- -->
-        <section id="tab-local" class="tabpane" hidden>
+        <!-- ---------- LOCAL AI ---------- -->
+        <section id="pane-local" class="config-pane" hidden>
           <small class="hint">Run a model on <b>this device</b> — free, private, works offline. Install <a href="https://ollama.com" target="_blank" rel="noopener"><b>Ollama</b></a> or <a href="https://lmstudio.ai" target="_blank" rel="noopener"><b>LM Studio</b></a>, start it, then press detect. The app finds the server and lists its installed models automatically.</small>
           <div class="row" style="margin-top:.5rem">
             <button id="localDetect" class="primary" style="width:auto">🔄 Detect local models</button>
@@ -215,6 +202,7 @@
         <label><input type="checkbox" id="autoNextPref" /> ⏭ Auto-advance to the next question after a short countdown</label>
         <label><input type="checkbox" id="reuse" /> ♻️ Reuse saved questions first when available (saves API credits)</label>
         <button id="resetHistory" class="small">🔄 Forget what I've seen for the current subject (clears saved questions too)</button>
+        <small class="hint" id="keySummary"></small>
       </section>
 
       <section class="panel">

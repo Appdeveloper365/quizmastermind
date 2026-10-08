@@ -58,7 +58,7 @@ export class PuterProvider implements QuizProvider {
       if ((e as Error)?.name === "AbortError") throw e;
       const msg = String((e as Error)?.message ?? e);
       if (/sign|auth|login|token|permission|401|403/i.test(msg))
-        throw new ProviderError("auth", `Puter didn't recognize the connection/session. Sign in again (AI settings → Puter → “Sign in with Puter”), then press Test connection. Details: ${msg}`);
+        throw new ProviderError("auth", `Puter didn't recognize the connection/session. Sign in again (☁️ Puter → “Sign in with Puter”), then press Test connection. Details: ${msg}`);
       if (/quota|credit|limit|402|429|exhaust/i.test(msg))
         throw new ProviderError("quota", `Puter allowance exhausted for this account: ${msg}`);
       if (/popup|blocked|closed/i.test(msg))

@@ -58,7 +58,7 @@ function setProviderChoice(v: ProviderChoice) {
 /* ---------- Elements ---------- */
 const selPuter = $<HTMLButtonElement>("selPuter"), selRemote = $<HTMLButtonElement>("selRemote"), selLocal = $<HTMLButtonElement>("selLocal");
 const selPuterSub = $("selPuterSub"), selRemoteSub = $("selRemoteSub"), selLocalSub = $("selLocalSub");
-const keySettings = $<HTMLElement>("keySettings");
+const connection = $<HTMLElement>("connection");
 const keySummary = $("keySummary");
 const topicInput = $<HTMLInputElement>("topic");
 const difficultySel = $<HTMLSelectElement>("difficulty");
@@ -100,7 +100,7 @@ autoNextPref.onchange = () => setAuto(autoNextPref.checked);
       byokProvider.value = id;
       void renderKeyUI();
       setProviderChoice(id);
-      switchTab("key");
+      showPane("key");
     };
     byokList.appendChild(b);
   }
@@ -127,6 +127,24 @@ function renderProviderButtons() {
   void renderByokList();
 }
 
+/* The three buttons above pick the provider: they reveal that provider's setup
+   and, once it is actually connected, make it the active provider. */
+selPuter.onclick = () => {
+  showPane("puter");
+  if (puterReady) { setProviderChoice("puter"); status("☁️ Provider set to Puter (auto model). Press ▶ Start."); }
+  else status("☁️ Press “Sign in with Puter” to connect — free, and sign-up takes seconds.");
+};
+selRemote.onclick = () => {
+  showPane("key");
+  const v = providerChoiceState;
+  status(isByokId(v) ? `🔑 ${BYOK[v].name} is active — pick another provider below to switch.` : "🔑 Pick a provider below and paste its key — each has a free tier.");
+};
+selLocal.onclick = () => {
+  showPane("local");
+  if (loadLocalConfig() || loadWebllmModel()) { setProviderChoice("local"); status("💻 Local AI is active. Press ▶ Start."); }
+  else status("💻 Press “🔄 Detect local models” (Ollama / LM Studio), or enable in-browser AI below.");
+};
+
 /* ---------- Refresh key marks ---------- */
 async function refreshKeyMarks() {
   const saved: string[] = [];
@@ -135,7 +153,7 @@ async function refreshKeyMarks() {
   }
   const lc = loadLocalConfig();
   const wl = loadWebllmModel();
-  keySummary.textContent = `⚙️ AI settings — provider: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${saved.length ? `keys saved: ${saved.join(", ")}` : "no API keys saved"}${lc ? ` · local: ${lc.server.label} ${lc.model}` : ""}${wl ? " · in-browser AI on" : ""}`;
+  keySummary.textContent = `Connection: ${choiceName(providerChoice())} · ${puterReady ? "Puter signed in" : "Puter off"} · ${saved.length ? `keys saved: ${saved.join(", ")}` : "no API keys saved"}${lc ? ` · local: ${lc.server.label} ${lc.model}` : ""}${wl ? " · in-browser AI on" : ""}`;
 }
 
 /* ---------- Provider note ---------- */
@@ -144,7 +162,7 @@ function renderProviderNote() {
   if (v === "puter") {
     $("providerNote").textContent = puterReady
       ? "☁️ Puter is active — signed in ✓. Your own-API keys stay saved but unused."
-      : "☁️ Puter is active — open AI settings → ☁️ Puter and press “Sign in with Puter”.";
+      : "☁️ Puter is active — press “Sign in with Puter” below to connect.";
     return;
   }
   if (v === "local") {
@@ -154,7 +172,7 @@ function renderProviderNote() {
       ? `💻 Local AI is active — ${lc.server.label} · ${lc.model}${wl ? " (in-browser AI ready as fallback)" : ""}. Runs on this device.`
       : wl
         ? "💻 Local AI is active — in-browser model ready. Tip: “🔄 Detect local models” also finds Ollama / LM Studio."
-        : "💻 Local AI is active — no model selected yet. Open AI settings → 💻 Local AI → “🔄 Detect local models” or enable in-browser AI.";
+        : "💻 Local AI is active — no model selected yet. Press “🔄 Detect local models”, or enable in-browser AI below.";
     return;
   }
   if (isByokId(v)) {
@@ -162,22 +180,21 @@ function renderProviderNote() {
     void keyStore.has(v).then((has) => {
       $("providerNote").textContent = has
         ? `🔑 ${k.name} is active — key saved ✓.`
-        : `🔑 ${k.name} is active — no key saved yet. Open AI settings → 🔑 Remote API key.`;
+        : `🔑 ${k.name} is active — no key saved yet. Paste it below, or pick 🔑 Use your own API key.`;
     });
     return;
   }
   $("providerNote").textContent = "✨ Auto is active — the agent uses your first working key, then local, then Puter.";
 }
 
-/* ---------- Tabs ---------- */
-function switchTab(name: string) {
-  keySettings.dataset.tab = name; // drives the per-tab accent colour
-  document.querySelectorAll<HTMLButtonElement>(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
-  document.querySelectorAll<HTMLElement>(".tabpane").forEach((p) => (p.hidden = p.id !== `tab-${name}`));
+/* ---------- Config pane (one per provider — picked by the buttons above) ---------- */
+type Pane = "puter" | "key" | "local";
+function showPane(name: Pane) {
+  connection.dataset.tab = name; // drives the accent colour
+  document.querySelectorAll<HTMLElement>(".config-pane").forEach((p) => (p.hidden = p.id !== `pane-${name}`));
 }
-for (const t of Array.from(document.querySelectorAll<HTMLButtonElement>(".tab"))) {
-  t.onclick = () => switchTab(t.dataset.tab!);
-}
+const paneForChoice = (c: ProviderChoice): Pane => (c === "puter" ? "puter" : c === "local" ? "local" : isByokId(c) ? "key" : "puter");
+showPane(paneForChoice(providerChoice())); // open on the provider that's already active
 
 /* ---------- Remote key tab ---------- */
 {
@@ -294,7 +311,6 @@ async function checkPuter() {
   $("puterUser").textContent = puterReady
     ? `${who} Free allowance is per-account; nothing is billed to this site.`
     : "No account yet? Press “Sign in with Puter” — it takes seconds, and one account works across every Puter app.";
-  ($("usePuter") as HTMLButtonElement).disabled = !puterReady;
   await refreshKeyMarks(); renderProviderNote(); renderProviderButtons();
 }
 $("puterRecheck").onclick = () => void checkPuter();
@@ -303,6 +319,7 @@ $("puterSignIn").onclick = async () => {
   catch (e) { status(`⚠️ ${(e as Error).message}`); return; }
   try {
     await new PuterProvider().verify();
+    setProviderChoice("puter");
     status("✅ Signed in — Puter recognized the connection (test call answered). Press ▶ Start.");
   } catch (e) {
     status(`⚠️ Signed in, but the test call failed: ${explainError(e)}`);
@@ -312,11 +329,6 @@ $("puterSignOut").onclick = async () => {
   await PuterProvider.signOut(); engine = null; await checkPuter();
   if (providerChoiceState === "puter") setProviderChoice("auto");
   status("Signed out of Puter.");
-};
-$("usePuter").onclick = () => {
-  if (!puterReady) return status("Sign in to Puter first, then press “Use Puter”.");
-  setProviderChoice("puter");
-  status("Provider set to Puter (auto model). Press ▶ Start.");
 };
 $("puterTest").onclick = async () => {
   const res = $("puterTestResult");
@@ -363,7 +375,7 @@ async function firstCandidateEngine(): Promise<QuizEngine> {
   const choice = providerChoice();
   if (engine && currentProviderId === choice) return engine;
   const chain = await providerChain(choice, { puterReady });
-  if (!chain.length) throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — open AI settings.");
+  if (!chain.length) throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — use the AI connection panel on the left.");
   for (const cand of chain) {
     try {
       const provider = await cand.build();
@@ -371,21 +383,21 @@ async function firstCandidateEngine(): Promise<QuizEngine> {
       currentProviderId = cand.id; return engine;
     } catch { /* keep prefetch silent */ }
   }
-  throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — open AI settings.");
+  throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — use the AI connection panel on the left.");
 }
 const currentTopic = () => topicInput.value.trim() || "General knowledge";
 const currentDifficulty = () => difficultySel.value as Difficulty;
 
-function pointToSettings(tab: "puter" | "key" | "local") {
-  switchTab(tab);
-  keySettings.classList.remove("attention"); void keySettings.offsetWidth; keySettings.classList.add("attention");
-  if (!keySettings.querySelector(".start-here")) {
+function pointToSettings(tab: Pane) {
+  showPane(tab);
+  connection.classList.remove("attention"); void connection.offsetWidth; connection.classList.add("attention");
+  if (!connection.querySelector(".start-here")) {
     const tag = document.createElement("div"); tag.className = "start-here";
-    tag.textContent = tab === "puter" ? "👉 Start here: press “Sign in with Puter” (no key to paste) — or use the API-key tab for stronger models" : tab === "local" ? "👉 Start here: install Ollama or LM Studio, start it, then press “🔄 Detect local models”" : "👉 Start here: pick a provider → click its link to get a free key → paste → Save key";
-    keySettings.querySelector("h3")!.insertAdjacentElement("afterend", tag);
+    tag.textContent = tab === "puter" ? "👉 Start here: press “Sign in with Puter” (no key to paste) — or pick 🔑 Use your own API key for stronger models" : tab === "local" ? "👉 Start here: install Ollama or LM Studio, start it, then press “🔄 Detect local models”" : "👉 Start here: pick a provider below → click its link to get a free key → paste → Save key";
+    connection.querySelector("h3")!.insertAdjacentElement("afterend", tag);
   }
-  keySettings.scrollIntoView({ behavior: "smooth", block: "start" });
-  setTimeout(() => keySettings.classList.remove("attention"), 7000);
+  connection.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => connection.classList.remove("attention"), 7000);
 }
 /* ---------- Prefetch + auto-advance ---------- */
 const AUTO_DELAY_MS = 4500;
@@ -448,7 +460,7 @@ function renderQuestion(q: QuizQuestion) {
 function explainError(e: unknown): string {
   if (e instanceof ProviderError) {
     switch (e.kind) {
-      case "auth": return e.message.startsWith("No ") ? e.message : "Your API key was rejected. Open AI settings, Clear it, and paste it again.";
+      case "auth": return e.message.startsWith("No ") ? e.message : "Your API key was rejected. Clear it below and paste it again.";
       case "quota": return "Your account is out of credits / free allowance. Switch provider or wait for the daily reset.";
       case "rate_limit": return "Rate limited by the provider (free tiers have per-minute/day caps). Wait a moment or switch provider.";
       case "unsupported": return e.message;
@@ -465,7 +477,7 @@ async function generateAndShow() {
   try {
     if (!topicInput.value.trim()) status("Tip: type a subject above — using “General knowledge” for now.");
     const chain = await providerChain(providerChoice(), { puterReady });
-    if (!chain.length) throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — open AI settings.");
+    if (!chain.length) throw new Error("No provider available. Sign in to Puter, add a free API key, or detect a local model — use the AI connection panel on the left.");
     const topic = topicInput.value.trim() || "General knowledge";
     let lastErr: unknown = null;
     for (const cand of chain) {
@@ -511,7 +523,7 @@ $("saveClose").onclick = async () => {
   await keyStore.save(id, key);
   setProviderChoice(id);
   await refreshKeyMarks(); await renderKeyUI();
-  keySettings.querySelector(".start-here")?.remove(); keySettings.classList.remove("attention");
+  connection.querySelector(".start-here")?.remove(); connection.classList.remove("attention");
   $("start").scrollIntoView({ behavior: "smooth", block: "center" });
   status(`✅ ${info.name} key saved. Provider set to “${info.name}”. Press ▶ Start.`);
 };

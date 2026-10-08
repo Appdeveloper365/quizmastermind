@@ -43,28 +43,28 @@ export async function providerChain(choice: ProviderChoice, deps: SelectDeps): P
   const chain: ProviderCandidate[] = [];
   const pushByok = (id: ByokId) => chain.push({
     id, build: async () => {
-      if (!(await keyStore.has(id))) throw new ProviderError("auth", `No ${BYOK[id].name} key saved. Open "AI settings" → Use my API key.`);
+      if (!(await keyStore.has(id))) throw new ProviderError("auth", `No ${BYOK[id].name} key saved. Pick 🔑 Use your own API key, then paste the key.`);
       return makeByok(id, await keyStore.load(id));
     },
   });
   const pushPuter = () => chain.push({
     id: "puter", build: async () => {
-      if (!deps.puterReady) throw new ProviderError("auth", "Not signed in to Puter. Open AI settings → Puter and press “Sign in with Puter”.");
+      if (!deps.puterReady) throw new ProviderError("auth", "Not signed in to Puter. Pick ☁️ Puter, then press “Sign in with Puter”.");
       return new PuterProvider();
     },
   });
   const pushLocal = () => chain.push({
     id: "local", build: async () => {
       const cfg = loadLocalConfig();
-      if (!cfg) throw new ProviderError("unsupported", "No local model selected. Open AI settings → 💻 Local AI and press “🔄 Detect local models”.");
+      if (!cfg) throw new ProviderError("unsupported", "No local model selected. Pick 💻 Local AI, then press “🔄 Detect local models”.");
       return new LocalProvider(cfg);
     },
   });
-  /** In-browser WebGPU model — the no-key offline fallback. Enabled from the 💻 Local AI tab. */
+  /** In-browser WebGPU model — the no-key offline fallback. Enabled from the 💻 Local AI section. */
   const pushWebllm = () => chain.push({
     id: "webllm" as const, build: async () => {
       const model = loadWebllmModel();
-      if (!model) throw new ProviderError("unsupported", "In-browser AI not enabled. Open AI settings → 💻 Local AI → “Run AI in this browser”.");
+      if (!model) throw new ProviderError("unsupported", "In-browser AI not enabled. Pick 💻 Local AI, then press “⬇️ Enable in-browser AI”.");
       return new WebLlmProvider(model);
     },
   });

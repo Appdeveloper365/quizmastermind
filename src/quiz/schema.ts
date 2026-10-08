@@ -38,6 +38,19 @@ export function validateQuizQuestion(raw: unknown): Validation {
   if (typeof raw !== "object" || raw === null) return { ok: false, reason: "not an object" };
   const r = raw as Record<string, unknown>;
   if (typeof r.question !== "string" || r.question.trim().length < 8) return { ok: false, reason: "question missing/too short" };
+  if (r.question.trim().split(/\s+/).length < 4) return { ok: false, reason: "question not a full sentence" };
+  if (typeof r.explanation === "string") {
+    // Small models echo schema language back — rewrite the common forms, reject leftovers.
+    const cleaned = r.explanation.trim()
+      .replace(/the option at (?:correctIndex|index) \d+/gi, (m) => (m[0] === m[0].toUpperCase() && m[0] !== m[0].toLowerCase() ? "The" : "the") + " correct answer")
+      .replace(/((?:the )?correct index is )(\d)/gi, (_m, head: string, d: string) =>
+        (head[0] === head[0].toUpperCase() && head[0] !== head[0].toLowerCase() ? head.charAt(0).toUpperCase() + head.slice(1) : head).replace(/index is/i, "option is") + String.fromCharCode(65 + Number(d)))
+      .replace(/((?:the )?correct option is )(\d)/gi, (_m, head: string, d: string) =>
+        (head[0] === head[0].toUpperCase() && head[0] !== head[0].toLowerCase() ? head.charAt(0).toUpperCase() + head.slice(1) : head) + String.fromCharCode(65 + Number(d)));
+    if (/\bcorrectIndex\b|\bcorrect index (?:is|=)\s*\d|\boption (?:is|=)\s*\d|\boption \d+\b|\bbefore you reply\b|\breply with\b/i.test(cleaned))
+      return { ok: false, reason: "explanation leaked schema or instruction text" };
+    r.explanation = cleaned;
+  }
   if (!Array.isArray(r.options) || r.options.length !== OPTION_COUNT) return { ok: false, reason: `need exactly ${OPTION_COUNT} options` };
   if (!r.options.every((o) => typeof o === "string" && o.trim().length > 0)) return { ok: false, reason: "empty/non-string option" };
   const options = (r.options as string[]).map((o) => stripOptionPrefix(o.trim()));

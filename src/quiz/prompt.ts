@@ -28,16 +28,23 @@ const STYLES = [
  *  Large prompt plumbing (angles/styles/nonces/long avoid-lists) makes 0.5-1B models emit
  *  invalid JSON; keeping it minimal raises first-attempt validity = faster question generation. */
 export const LOCAL_SYSTEM_PROMPT =
-  "You are a quiz host. Reply with ONE JSON object only, no markdown, no commentary before or after. " +
-  "Shape: {\"question\": string, \"options\": [4 distinct strings], \"correctIndex\": 0-3, \"explanation\": string}. " +
-  "Rules: exactly one correct option; all 4 options must be DIFFERENT from each other; " +
-  "options are plain text — NEVER begin an option with a letter, number or \"A.\" style prefix; " +
-  "write direct factual trivia, never a question about questions; suitable for all ages; " +
-  "correctIndex must match the correct option's position in the options array.";
+  "You are a quiz host. Reply with ONE JSON object only — no markdown, no commentary. " +
+  "Fields: question, options (4 DIFFERENT plain-text strings, never letter-prefixed), correctIndex, explanation. " +
+  "Write direct factual trivia suitable for all ages — a real question about the topic, " +
+  "never a question about questions or about how quizzes work. " +
+  "explanation: one or two sentences stating WHY the best answer is correct. " +
+  "correctIndex must mark that same option.";
+
+/** Concrete topic slices (not abstract phrases — small models parrot hints like
+ *  "Which of the following is <hint>?" if the hint reads like a fill-in-the-blank). */
+const LOCAL_ANGLES = ["its origins and history", "key people involved", "the science behind it", "records and extremes", "famous events", "how it is used today", "its most surprising details", "where you would encounter it"];
 
 export function buildLocalUserPrompt(p: GenerateParams): string {
-  const avoid = p.avoid.length ? `\nDo not repeat these: ${p.avoid.slice(-8).join(" | ")}` : "";
-  return `Topic: ${p.topic}\nDifficulty: ${p.difficulty}${avoid}`;
+  // Deliberately NOT listing already-asked questions: 0.5-1B models copy the example
+  // instead of avoiding it (verified live: 3/3 attempts returned the avoid-listed
+  // question verbatim). Variety comes from the rotating angle + engine dedup retries.
+  const angle = LOCAL_ANGLES[Math.floor(Math.random() * LOCAL_ANGLES.length)];
+  return `Topic: ${p.topic}\nDifficulty: ${p.difficulty}\nWrite a question about ${angle} of this topic.`;
 }
 
 export function buildUserPrompt(p: GenerateParams): string {

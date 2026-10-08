@@ -89,3 +89,46 @@ test("options that only differ by their letter prefix are rejected as duplicates
   expect(v.ok).toBe(false);
   if (!v.ok) expect(v.reason).toMatch(/duplicate/);
 });
+
+test("rejects a hint-parroted fragment that is not a full question", () => {
+  // Live bug: the model echoed the prompt's angle hint as the whole question.
+  const v = validateQuizQuestion({ ...good, question: "famous examples" });
+  expect(v.ok).toBe(false);
+  if (!v.ok) expect(v.reason).toMatch(/full sentence/);
+});
+
+test("rewrites the common 'option at correctIndex N' explanation echo", () => {
+  const v = validateQuizQuestion({ ...good, explanation: "The option at correctIndex 0 is correct here." });
+  expect(v.ok).toBe(true);
+  if (v.ok) expect(v.value.explanation).toBe("The correct answer is correct here.");
+});
+
+test("rejects explanations that still contain the field name after rewriting", () => {
+  const v = validateQuizQuestion({ ...good, explanation: "Paris, because correctIndex says so." });
+  expect(v.ok).toBe(false);
+  if (!v.ok) expect(v.reason).toMatch(/schema or instruction/);
+});
+
+test("rejects explanations that are echoes of the prompt's instructions", () => {
+  // Live bug: the model copied a system-prompt sentence into the explanation.
+  const v = validateQuizQuestion({ ...good, explanation: "Double-check the index points at exactly option 1 before you reply." });
+  expect(v.ok).toBe(false);
+  if (!v.ok) expect(v.reason).toMatch(/schema or instruction/);
+});
+
+test("legitimate numeric answers are not blocked by the meta-text guard", () => {
+  const v = validateQuizQuestion({ ...good, explanation: "The answer is 42, since that is the famous value." });
+  expect(v.ok).toBe(true);
+});
+
+test("maps 'correct option is 0' prose to the letter the UI shows", () => {
+  const v = validateQuizQuestion({ ...good, explanation: "The correct option is 0, as Paris is the capital." });
+  expect(v.ok).toBe(true);
+  if (v.ok) expect(v.value.explanation).toBe("The correct option is A, as Paris is the capital.");
+});
+
+test("maps 'The correct index is 0' prose to the letter the UI shows", () => {
+  const v = validateQuizQuestion({ ...good, explanation: "The correct index is 0, and Paris is the capital." });
+  expect(v.ok).toBe(true);
+  if (v.ok) expect(v.value.explanation).toBe("The correct option is A, and Paris is the capital.");
+});

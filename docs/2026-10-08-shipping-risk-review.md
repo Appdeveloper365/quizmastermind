@@ -61,15 +61,19 @@ Puter quotas, Groq/Gemini/Pollinations free limits and model availability are th
 It's built outside this repo (PWABuilder/bubblewrap, see README), so its permissions and package signature aren't reviewable here. Sideloaded installs are a trust decision users make, and Play Store distribution would add policy obligations (data-safety form, content rating).
 → **Decide:** publish the APK's permissions/package in the release notes, or move to Play Store if you distribute widely. Never lose the signing keystore (README Route B).
 
-**M6 · Dead artifacts in the public repo.** *(DECIDE)*
-No secrets in them (verified), but they advertise internal tooling and one is an **unused CORS pass-through proxy for an NVIDIA API the app no longer uses** (`cloudflare/nvidia-cors-proxy.js`): if it's still deployed on your Cloudflare account it's a public relay others can use (with their own key) and a billable resource you may have forgotten about.
-→ **Decide:** delete `cloudflare/`, `dev_log.txt`, `auto-cline.mjs`, `auto-local.mjs`, `.env.example` (or keep them and just delete the deployed Worker). Also `@cline/sdk` (`"latest"` — unpinned) and `dotenv` sit in `dependencies` though the shipped bundle uses neither; moving them to `devDependencies` narrows install-time supply chain.
+**M6 · Dead artifacts in the public repo.** *(PARTLY DONE)*
+No secrets in them (verified), but they advertise internal tooling. **Done:** `cloudflare/` (the unused
+NVIDIA CORS pass-through Worker) and `.vscode/mcp.json` (five Cloudflare MCP endpoints) are deleted —
+the project no longer exists on Cloudflare.
+→ **Still decide:** delete `dev_log.txt`, `auto-cline.mjs`, `auto-local.mjs`, `.env.example`. Also
+`@cline/sdk` (`"latest"` — unpinned) and `dotenv` sit in `dependencies` though the shipped bundle uses
+neither; moving them to `devDependencies` narrows install-time supply chain.
 
 ### LOW — understood, left as is
 
 **L1 · No LICENSE.** Public code with no licence = all rights reserved (good for you). Consider adding `README` line: *"Source is visible for review; no licence is granted for reuse."* If you *want* forks/contributions, pick an explicit licence instead. **DECIDE.**
 
-**L2 · GitHub Pages is the host.** GitHub processes IPs/user agents as your host (now disclosed in the policy). Outage/termination of Pages is outside your control; the build is reproducible locally, so you could move to Cloudflare Pages/Netlify without a code change (relative `base: "./"`).
+**L2 · GitHub Pages is the host.** GitHub processes IPs/user agents as your host (now disclosed in the policy). Outage/termination of Pages is outside your control; the build is reproducible locally, so you could move to any other static host (Netlify, Vercel, S3…) without a code change (relative `base: "./"`).
 
 **L3 · Service-worker staleness.** Users may briefly see a cached old shell after a release; the cache version bump (`quiz-mastermind-v8`) handles cleanup. Bump on UI-structural releases.
 
@@ -84,7 +88,7 @@ No secrets in them (verified), but they advertise internal tooling and one is an
 | # | Decision | My suggestion |
 |---|---|---|
 | D1 | Licence for the public source | Add the "no licence granted" README line (keep all rights) unless you want contributions. |
-| D2 | Delete `cloudflare/`, `dev_log.txt`, `auto-*.mjs`, `.env.example`; check for a deployed NVIDIA Worker | Delete; kill the Worker if it exists. |
+| D2 | ~~Delete `cloudflare/` + Cloudflare MCP config~~ → still: `dev_log.txt`, `auto-*.mjs`, `.env.example` | Cloudflare files removed (project deleted there). Delete the rest? |
 | D3 | Move `@cline/sdk` + `dotenv` to `devDependencies` | Yes — the shipped app imports neither. |
 | D4 | After deploy, test **Puter sign-in** once | Mandatory smoke test (M1). |
 | D5 | APK: document permissions vs. Play Store | Document permissions now; Play Store only if you want wide distribution. |

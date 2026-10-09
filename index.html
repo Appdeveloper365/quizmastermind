@@ -81,6 +81,19 @@
     @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,176,0,.85)}100%{box-shadow:0 0 0 14px rgba(224,176,0,0)}}
 
     .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:1.25rem;align-items:start}
+    /* Previous question: slides to the bottom of the question area and fades out
+       slowly as the new question appears. One ghost at a time (JS restarts it). */
+    #prevQ{margin-top:.9rem;padding:.5rem .7rem;border-left:3px solid #d1d5db;background:#f9fafb;border-radius:0 6px 6px 0;color:#9ca3af;font-size:.83rem;line-height:1.45}
+    #prevQ b{color:#6b7280;font-weight:600}
+    #prevQ.ghosting{animation:prevGhost 6s cubic-bezier(.25,.6,.35,1) forwards}
+    @keyframes prevGhost{
+      0%{opacity:.9;transform:translateY(-12px)}
+      35%{opacity:.8;transform:translateY(0)}
+      100%{opacity:0;transform:translateY(20px)}
+    }
+    @media (prefers-reduced-motion: reduce){#prevQ.ghosting{animation:prevGhostFade 3s ease forwards}
+      @keyframes prevGhostFade{0%{opacity:.75}100%{opacity:0}}
+    }
     #legal{margin-top:1.75rem;padding:.85rem 0 1.5rem;border-top:1px solid #e5e7eb;display:flex;flex-wrap:wrap;gap:.3rem 1.1rem;align-items:baseline;justify-content:space-between;color:#6b7280;font-size:.82rem;line-height:1.5}
     #legal a{color:#374151;font-weight:600;text-decoration:underline;text-underline-offset:2px}
     #legal a:hover{color:#000}
@@ -243,6 +256,7 @@
         <div class="bar"><div id="nextFill"></div></div>
       </div>
       <p id="stats"></p>
+      <div id="prevQ" hidden aria-hidden="true"></div>
     </main>
   </div>
 

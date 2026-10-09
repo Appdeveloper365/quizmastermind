@@ -453,7 +453,21 @@ nextBtn.onclick = () => void showNext();
 setAuto(localStorage.getItem("quiz.autoNext") !== "no");
 
 /* ---------- Question rendering ---------- */
+let lastShownQuestion = "";
+const prevGhost = $("prevQ");
+prevGhost.addEventListener("animationend", () => { prevGhost.hidden = true; prevGhost.classList.remove("ghosting"); });
+/** Echo the outgoing question at the bottom of the question area — it slides down and
+ *  fades out slowly while the new question is already on screen (one ghost at a time). */
+function echoPrevQuestion(text: string) {
+  prevGhost.innerHTML = `<b>Previous:</b> ${esc(text)}`;
+  prevGhost.hidden = false;
+  prevGhost.classList.remove("ghosting");
+  void prevGhost.offsetWidth; // restart the animation
+  prevGhost.classList.add("ghosting");
+}
 function renderQuestion(q: QuizQuestion) {
+  if (lastShownQuestion) echoPrevQuestion(lastShownQuestion);
+  lastShownQuestion = q.question;
   $("question").textContent = q.question;
   const box = $("options"); box.innerHTML = "";
   const explain = $("explain"); explain.style.display = "none"; nextBar.hidden = true;

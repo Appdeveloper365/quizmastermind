@@ -454,19 +454,44 @@ setAuto(localStorage.getItem("quiz.autoNext") !== "no");
 
 /* ---------- Question rendering ---------- */
 let lastShownQuestion = "";
-const prevGhost = $("prevQ");
-prevGhost.addEventListener("animationend", () => { prevGhost.hidden = true; prevGhost.classList.remove("ghosting"); });
-/** Echo the outgoing question at the bottom of the question area — it slides down and
- *  fades out slowly while the new question is already on screen (one ghost at a time). */
-function echoPrevQuestion(text: string) {
-  prevGhost.innerHTML = `<b>Previous:</b> ${esc(text)}`;
-  prevGhost.hidden = false;
-  prevGhost.classList.remove("ghosting");
-  void prevGhost.offsetWidth; // restart the animation
-  prevGhost.classList.add("ghosting");
+/** Previous questions pile up at the bottom of the question area: each new one grows in
+ *  from zero height, pushing the older entries down so they slowly sink out of sight. */
+const prevStack = $("prevStack");
+function pushPrevQuestion(text: string) {
+  const item = document.createElement("div");
+  item.className = "oldq";
+  item.innerHTML = `<b>Previous:</b> ${esc(text)}`;
+  prevStack.prepend(item);
+  const natural = item.getBoundingClientRect().height; // in flow, before collapsing
+  if (natural <= 0 || matchMedia("(prefers-reduced-motion: reduce)").matches) { trimPrev(); return; }
+  item.style.transition = "none";
+  item.style.overflow = "hidden";
+  item.style.height = "0px";
+  item.style.opacity = "0";
+  void prevStack.offsetHeight; // commit the collapsed state before animating
+  item.style.transition = "height 1.9s cubic-bezier(.25,.6,.35,1), opacity .55s ease .15s";
+  item.style.height = `${natural}px`;
+  item.style.opacity = "1";
 }
+/** Entries below the visible band are clipped anyway — drop them (never touches the ones above).
+ *  The boundary is the fixed max-height, not clientHeight: the stack's height is content-driven
+ *  and shrinks with its content, which would otherwise let a lone entry delete itself. */
+function trimPrev() {
+  const cap = parseFloat(getComputedStyle(prevStack).maxHeight) || prevStack.clientHeight;
+  let el = prevStack.lastElementChild as HTMLElement | null;
+  while (el && el.offsetTop >= cap) { // starts below the clipped band → already invisible
+    const gone = el;
+    el = el.previousElementSibling as HTMLElement | null;
+    gone.remove();
+  }
+}
+prevStack.addEventListener("transitionend", (e) => {
+  if (e.propertyName !== "height") return;
+  (e.target as HTMLElement).style.cssText = ""; // release the fixed height so text can reflow
+  trimPrev();
+});
 function renderQuestion(q: QuizQuestion) {
-  if (lastShownQuestion) echoPrevQuestion(lastShownQuestion);
+  if (lastShownQuestion) pushPrevQuestion(lastShownQuestion);
   lastShownQuestion = q.question;
   $("question").textContent = q.question;
   const box = $("options"); box.innerHTML = "";

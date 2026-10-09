@@ -7,6 +7,7 @@ installable as a PWA, with an Android APK.
 - **Descriptions copy-pasted from** [`docs/app-description.md`](docs/app-description.md) (one-liner → Play Store listing).
 - **Legal:** [`public/privacy-policy.html`](public/privacy-policy.html) · [`public/terms.html`](public/terms.html) — both linked from the app's footer.
 - **Risk review (shipping):** [`docs/2026-10-08-shipping-risk-review.md`](docs/2026-10-08-shipping-risk-review.md).
+- **Licence:** the source is visible for review — no licence is granted for reuse, modification or redistribution.
 
 Run from the project folder.
 

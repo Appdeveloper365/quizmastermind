@@ -65,13 +65,16 @@ It's built outside this repo (PWABuilder/bubblewrap, see README), so its permiss
 No secrets in them (verified), but they advertise internal tooling. **Done:** `cloudflare/` (the unused
 NVIDIA CORS pass-through Worker) and `.vscode/mcp.json` (five Cloudflare MCP endpoints) are deleted —
 the project no longer exists on Cloudflare.
-→ **Still decide:** delete `dev_log.txt`, `auto-cline.mjs`, `auto-local.mjs`, `.env.example`. Also
-`@cline/sdk` (`"latest"` — unpinned) and `dotenv` sit in `dependencies` though the shipped bundle uses
-neither; moving them to `devDependencies` narrows install-time supply chain.
+→ **Still decide:** delete `dev_log.txt`, `auto-cline.mjs`, `auto-local.mjs`, `.env.example`.
+**Done:** `@cline/sdk` and `dotenv` moved to `devDependencies` (and `@cline/sdk` pinned to `^0.0.83`
+instead of the floating `"latest"`); the shipped bundle's only production dependency is
+`@mlc-ai/web-llm`.
 
 ### LOW — understood, left as is
 
-**L1 · No LICENSE.** Public code with no licence = all rights reserved (good for you). Consider adding `README` line: *"Source is visible for review; no licence is granted for reuse."* If you *want* forks/contributions, pick an explicit licence instead. **DECIDE.**
+**L1 · No LICENSE.** *(DONE)* Public code with no licence = all rights reserved (good for you). The README now states:
+*"the source is visible for review — no licence is granted for reuse, modification or redistribution."*
+If you later *want* forks/contributions, replace that line with an explicit licence.
 
 **L2 · GitHub Pages is the host.** GitHub processes IPs/user agents as your host (now disclosed in the policy). Outage/termination of Pages is outside your control; the build is reproducible locally, so you could move to any other static host (Netlify, Vercel, S3…) without a code change (relative `base: "./"`).
 
@@ -87,9 +90,9 @@ neither; moving them to `devDependencies` narrows install-time supply chain.
 
 | # | Decision | My suggestion |
 |---|---|---|
-| D1 | Licence for the public source | Add the "no licence granted" README line (keep all rights) unless you want contributions. |
+| D1 | Licence for the public source | ✅ Done — README "no licence granted" line added. |
 | D2 | ~~Delete `cloudflare/` + Cloudflare MCP config~~ → still: `dev_log.txt`, `auto-*.mjs`, `.env.example` | Cloudflare files removed (project deleted there). Delete the rest? |
-| D3 | Move `@cline/sdk` + `dotenv` to `devDependencies` | Yes — the shipped app imports neither. |
+| D3 | Move `@cline/sdk` + `dotenv` to `devDependencies` | ✅ Done — plus `@cline/sdk` pinned to `^0.0.83`; only `@mlc-ai/web-llm` remains a prod dep. |
 | D4 | After deploy, test **Puter sign-in** once | Mandatory smoke test (M1). |
 | D5 | APK: document permissions vs. Play Store | Document permissions now; Play Store only if you want wide distribution. |
 | D6 | Adding a governing-law clause later | Leave out until you know where most users are / where you'd ever litigate. |

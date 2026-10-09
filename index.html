@@ -4,7 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#e0b000" />
+  <meta name="description" content="Quiz Mastermind — free AI trivia quiz. Type any subject, get fresh multiple-choice questions with explanations. Runs in your browser with Puter, your own API key, or a local/in-browser AI." />
   <link rel="manifest" href="manifest.webmanifest" />
+  <!-- Security policy: only this origin's code may run or be called. The allowlist covers the AI
+       providers, the model CDN, Puter's own hosts and localhost (Ollama / LM Studio). If a
+       provider ever adds a host, add it to connect-src — one line. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://js.puter.com; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.groq.com https://generativelanguage.googleapis.com https://gen.pollinations.ai https://openrouter.ai https://api.x.ai https://api.puter.com https://apps.puter.com https://puter.com https://puter-net.b-cdn.net https://nodejs.puter.site https://puter.site https://puter.work https://unpkg.com https://raw.githubusercontent.com https://huggingface.co https://*.huggingface.co http://localhost:* http://127.0.0.1:* wss://puter.cafe wss://api.puter.com; worker-src 'self' blob:; frame-src https://puter.com https://*.puter.com https://apps.puter.com https://webgpureport.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <style>
     .logo-stage{transition:transform .4s ease;display:flex;flex-direction:column;align-items:center}
     .logo-stage:hover{transform:perspective(700px) rotateY(-4deg) rotateX(4deg)}
@@ -41,7 +46,6 @@
   </style>
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>Quiz Mastermind</title>
-  <script src="https://js.puter.com/v2/"></script>
   <style>
     body{font-family:system-ui;max-width:1160px;margin:2rem auto;padding:0 1rem;line-height:1.4}
     h1{margin:.2rem 0 .6rem}h1 small{font-size:.5em;color:#777;font-weight:400;margin-left:.5rem}
@@ -71,12 +75,15 @@
     .config-pane{border-left:3px solid var(--accent);padding-left:.6rem}
     .panel>.hint{margin-top:.4rem}
     .badge{display:inline-block;padding:.1rem .5rem;border-radius:999px;font-size:.75rem;font-weight:600}
-    .badge.ok{background:#c8f7c5;color:#1b5e20}.badge.off{background:#f7c5c5;color:#b71c1c}.badge.wait{background:#fff3c4;color:#7a5a00}
+    .badge.ok{background:#c8f7c5;color:#1b5e20}.badge.off{background:#f7c5c5;color:#b71c1c}.badge.wait{background:#fff3c4;color:#7a5a00}.badge.idle{background:#eef0f2;color:#4b5563}
     .attention{border:2px solid #e0b000;animation:pulse 1.2s ease-out 5}
     .start-here{background:#fff3c4;border-left:5px solid #e0b000;padding:.5rem .75rem;margin:.5rem 0 .25rem;font-weight:600}
     @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,176,0,.85)}100%{box-shadow:0 0 0 14px rgba(224,176,0,0)}}
 
     .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:1.25rem;align-items:start}
+    #legal{margin-top:1.75rem;padding:.85rem 0 1.5rem;border-top:1px solid #e5e7eb;display:flex;flex-wrap:wrap;gap:.3rem 1.1rem;align-items:baseline;justify-content:space-between;color:#6b7280;font-size:.82rem;line-height:1.5}
+    #legal a{color:#374151;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+    #legal a:hover{color:#000}
     #historyList{display:flex;flex-direction:column;gap:.45rem;perspective:600px}
     .hist{background:#fff;border:1px solid #ddd;border-radius:6px;padding:.45rem .6rem;font-size:.8rem;transform-origin:top center;transition:opacity .7s ease,transform .7s ease,filter .7s ease}
     .hist.ok{border-left:4px solid #4caf50}.hist.bad{border-left:4px solid #e53935}
@@ -238,6 +245,11 @@
       <p id="stats"></p>
     </main>
   </div>
+
+  <footer id="legal">
+    <span>Quiz Mastermind is free · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> · <a href="https://github.com/appdeveloper365/quizmastermind" target="_blank" rel="noopener">Source code</a></span>
+    <span class="hint">Questions are AI-generated and can be wrong — check anything that matters.</span>
+  </footer>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

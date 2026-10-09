@@ -3,62 +3,116 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Privacy Policy for Quiz Mastermind — what is stored on your device and what is sent to which AI provider." />
 <title>Privacy Policy — Quiz Mastermind</title>
 <style>
   body{font-family:system-ui;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#222}
   h1{font-size:1.6rem} h2{font-size:1.1rem;margin-top:1.6rem}
   a{color:#0645ad} code{background:#f2f2f2;padding:.1rem .3rem;border-radius:3px}
   .box{background:#f8f6ee;border-left:4px solid #e0b000;padding:.8rem 1rem;margin:1rem 0}
+  .warn{background:#fff6f0;border-left:4px solid #d97706}
   footer{margin-top:2.5rem;font-size:.85rem;color:#666}
 </style>
 </head>
 <body>
 <h1>Privacy Policy</h1>
 <p><strong>App:</strong> Quiz Mastermind — an AI trivia quiz that runs entirely in your browser.</p>
-<p><strong>Last updated:</strong> September 18, 2026</p>
+<p><strong>Last updated:</strong> October 8, 2026</p>
 
 <div class="box">
 <strong>Short version:</strong> Quiz Mastermind has no accounts, no analytics and no server of its own.
-Everything personal stays on <em>your</em> device. When you generate a question, one prompt is sent to the
-AI provider <em>you</em> chose — using <em>your</em> API key — under that provider's own privacy policy.
+Your quiz data, preferences and API keys stay on <em>your</em> device. When you generate a question, a short
+prompt is sent to the AI provider <em>you</em> selected — using <em>your</em> key or <em>your</em> account —
+and that provider's own privacy policy applies to it. Pick the local or in-browser AI and nothing is sent anywhere.
 </div>
 
-<h2>1. What we store (only on your device)</h2>
+<h2>1. What this app is</h2>
+<p>Quiz Mastermind is a static website (a progressive web app) served from GitHub Pages. It is built as plain
+HTML/CSS/JavaScript — there is no Quiz Mastermind database, login system or backend. Everything the app
+“remembers” is written to your own browser.</p>
+
+<h2>2. What is stored (only on your device)</h2>
 <ul>
-  <li><strong>AI provider keys</strong> (Gemini, Groq, OpenRouter, NVIDIA, xAI): stored in your browser's <code>localStorage</code> (kept on this device only, shown masked in the app — no lock PIN needed). The plaintext key never leaves your device except to call the provider you selected.</li>
-  <li><strong>Quiz data</strong>: your score, streak, history and which questions you've already seen (so they don't repeat) are kept in <code>localStorage</code> and <code>IndexedDB</code> on your device.</li>
-  <li><strong>Preferences</strong>: topic, difficulty and provider choices.</li>
+  <li><strong>API keys</strong> — if you paste your own key (Google Gemini, Groq, Pollinations, OpenRouter or xAI),
+      it is saved in your browser's <code>localStorage</code> under names like <code>quiz.key.gemini</code>. It is
+      <strong>encoded (base64), not encrypted</strong> — the protection is that it lives only in your browser profile
+      on this device. It is shown masked and locked in the app, and never sent anywhere except to that provider's API
+      when you generate a question. Remove it with “🗑 Clear this key”, or wipe it entirely by clearing this site's data.</li>
+  <li><strong>Quiz data</strong> — score, high score, streaks, accuracy (<code>quiz.stats</code>) and your recent
+      answers (<code>quiz.recent</code>, up to 8) in <code>localStorage</code>.</li>
+  <li><strong>Question history</strong> — the text of questions you've already been asked, so they never repeat:
+      stored per topic+difficulty in <code>IndexedDB</code> (database <code>quiz-mastermind</code>, capped at 500 per topic).
+      Removed by “🔄 Forget what I've seen…”.</li>
+  <li><strong>Preferences</strong> — topic, difficulty, provider choice, auto-advance and reuse settings.</li>
+  <li><strong>App files &amp; AI model</strong> — a service worker caches the app itself so it opens offline, and if you
+      enable in-browser AI the model weights (roughly 500&nbsp;MB–1.8&nbsp;GB) are cached in your browser's
+      <code>Cache Storage</code>. Both are removed by clearing this site's data.</li>
 </ul>
-<p>Clearing your browser data, or using the in-app “Clear this key” / “Forget what I've seen” controls, removes it permanently. We cannot recover anything for you.</p>
+<p>Clearing your browser/site data, or using the in-app “Clear this key”, “Forget what I've seen…” and
+“Clear list” controls, removes the corresponding data permanently. Because there is no server, there is
+nothing we can delete for you — the data never reached us.</p>
 
-<h2>2. What leaves your device (only when you generate a question)</h2>
-<p>To write a question, your chosen AI provider receives a short prompt (topic + difficulty + a list of recently asked questions to avoid repeats). Depending on the provider you select:</p>
+<h2>3. What leaves your device (only when you generate a question)</h2>
+<p>Your chosen provider receives: the topic <em>you</em> typed, the difficulty, a system prompt, a rotating
+random “angle” hint, and — <strong>for cloud providers only</strong> — the text of up to 60 previously asked
+questions so they don't repeat. Requests go straight from your browser to the provider; they never pass through
+a Quiz Mastermind server (there isn't one).</p>
 <ul>
-  <li><strong>Google Gemini</strong> — data handled under Google's terms: <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a></li>
-  <li><strong>Groq</strong> — <a href="https://groq.com/privacy-policy/" rel="noopener">groq.com/privacy-policy</a></li>
-  <li><strong>OpenRouter</strong> — <a href="https://openrouter.ai/privacy" rel="noopener">openrouter.ai/privacy</a></li>
-  <li><strong>NVIDIA</strong> — <a href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/" rel="noopener">nvidia.com privacy policy</a></li>
-  <li><strong>xAI</strong> — <a href="https://x.ai/legal/privacy-policy" rel="noopener">x.ai/legal/privacy-policy</a></li>
-  <li><strong>Puter (optional)</strong> — AI calls run under <em>your</em> Puter account via <a href="https://puter.com" rel="noopener">puter.com</a> (“user-pays”); Puter's policy: <a href="https://puter.com/privacy" rel="noopener">puter.com/privacy</a></li>
+  <li><strong>Google Gemini</strong> (<code>generativelanguage.googleapis.com</code>) — <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a></li>
+  <li><strong>Groq</strong> (<code>api.groq.com</code>) — <a href="https://groq.com/privacy-policy/" rel="noopener">groq.com/privacy-policy</a></li>
+  <li><strong>Pollinations</strong> (<code>gen.pollinations.ai</code>) — <a href="https://pollinations.ai/terms" rel="noopener">pollinations.ai/terms</a></li>
+  <li><strong>OpenRouter</strong> (<code>openrouter.ai</code>) — <a href="https://openrouter.ai/privacy" rel="noopener">openrouter.ai/privacy</a></li>
+  <li><strong>xAI</strong> (<code>api.x.ai</code>) — <a href="https://x.ai/legal/privacy-policy" rel="noopener">x.ai/legal/privacy-policy</a></li>
+  <li><strong>Puter</strong> (optional) — AI runs under <em>your</em> Puter account in Puter's “user-pays” model.
+      Using it loads Puter's own script from <code>js.puter.com</code> on demand (only when you pick Puter) and sends
+      your prompts to Puter's API; Puter sets its own session storage/cookies under its policy:
+      <a href="https://puter.com/privacy" rel="noopener">puter.com/privacy</a>.</li>
+  <li><strong>Ollama / LM Studio</strong> (optional) — requests go to <code>http://localhost</code> on your own
+      machine. Nothing leaves your device or network.</li>
+  <li><strong>In-browser AI (WebLLM)</strong> (optional) — the model itself is downloaded once from the public
+      Hugging Face model repository (<code>huggingface.co</code>, operated by Hugging Face, Inc.) and cached locally;
+      those hosts see your IP during that download. After that, questions are generated entirely on your device —
+      your topics and questions never leave it.</li>
 </ul>
-<p>Requests go directly from your browser to the provider. They do not pass through any server operated by Quiz Mastermind (there isn't one).</p>
+<p><strong>Hosting:</strong> the site's files are served by GitHub Pages, so GitHub processes routine connection
+data (IP address, user agent, time) as your host: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" rel="noopener">GitHub privacy statement</a>.</p>
 
-<h2>3. What we do NOT do</h2>
+<h2>4. What we do NOT do</h2>
 <ul>
-  <li>No accounts or sign-ups on this site (Puter sign-in is an account with Puter, not with us).</li>
-  <li>No analytics, tracking, cookies set by us, ads, or profiling.</li>
-  <li>No reading of your contacts, files, camera or location.</li>
+  <li>No accounts or sign-ups on this site (signing in to Puter is an account with Puter, not with us).</li>
+  <li>No analytics, tracking, advertising, profiling or cookies set by us.</li>
+  <li>No access to your contacts, files, camera, microphone or location — the app never requests those permissions.</li>
+  <li>No selling, sharing or analytics on your data — we don't receive it in the first place.</li>
 </ul>
+<div class="box warn">
+<strong>Honest note about API keys:</strong> keys you paste are stored <em>obfuscated</em>, not encrypted, inside your
+browser profile. Anyone with access to this device and browser profile — or malicious code running on this page —
+could read them. Don't save a key on a shared or public computer; use “🗑 Clear this key” when you're done.
+The app runs a strict Content-Security-Policy so only the code listed in <code>index.html</code> (and the AI
+providers above) can run and be contacted.
+</div>
 
-<h2>4. Children</h2>
-<p>Content is generated to be suitable for all ages, but the app is directed at general audiences and is not specifically directed at children under 13.</p>
+<h2>5. Children</h2>
+<p>The app is a general-audience quiz. It is <strong>not directed at children under 13</strong>. Questions are
+written to a “suitable for all ages” instruction, but the text is generated by AI: it can be inaccurate or
+occasionally unsuitable, so a parent/guardian should supervise younger users. We knowingly collect no personal
+data from anyone, including children — because we collect nothing.</p>
 
-<h2>5. Changes</h2>
-<p>If this policy changes, the “Last updated” date above will change with it.</p>
+<h2>6. Your rights</h2>
+<p>Because all app data lives in <em>your</em> browser and the prompts go to third-party AI providers under
+<em>their</em> policies, you control it directly: use the in-app clear controls, clear this site's data in your
+browser, and use each provider's own account/data tools if you want to act there. Requests or questions about
+this policy: open an issue (link below).</p>
 
-<h2>6. Contact</h2>
+<h2>7. Changes</h2>
+<p>If this policy changes, the “Last updated” date at the top changes with it. Material changes will be announced
+in the repository's release notes.</p>
+
+<h2>8. Contact</h2>
 <p>Questions or requests: open an issue at <a href="https://github.com/appdeveloper365/quizmastermind/issues" rel="noopener">github.com/appdeveloper365/quizmastermind/issues</a>.</p>
 
-<footer><a href="./">← Back to Quiz Mastermind</a></footer>
+<footer>
+  <a href="terms.html">Terms of Use</a> · <a href="./">← Back to Quiz Mastermind</a>
+</footer>
 </body>
 </html>

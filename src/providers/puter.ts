@@ -13,7 +13,8 @@ declare global {
  * The only thing that matters here is that Puter *recognizes the connection* — the SDK is
  * loaded and the session is authenticated. If the user isn't signed in yet, Puter's own
  * sign-in popup appears on the first AI call, so we don't hard-block on it.
- * Loaded from the CDN in index.html (https://js.puter.com/v2/).
+ * Loaded on demand from the CDN (https://js.puter.com/v2/) — see ensureInjected().
+ * No third-party script runs until the user actually picks Puter.
  */
 
 export class PuterProvider implements QuizProvider {
@@ -21,11 +22,25 @@ export class PuterProvider implements QuizProvider {
   readonly label = "Puter · auto model (signed-in account)";
 
   static isLoaded(): boolean { return typeof window !== "undefined" && !!window.puter?.ai?.chat; }
+  /** True once the tag has been added to the page (loaded or still loading). */
+  static isInjected(): boolean {
+    return typeof document !== "undefined" && (PuterProvider.isLoaded() || !!document.querySelector('script[src*="js.puter.com"]'));
+  }
+  /** Adds the Puter SDK tag once. Repeat calls are no-ops; success is detected by waitForReady(). */
+  static ensureInjected(): void {
+    if (typeof document === "undefined" || PuterProvider.isInjected()) return;
+    const s = document.createElement("script");
+    s.src = "https://js.puter.com/v2/";
+    s.async = true;
+    s.onerror = () => { /* waitForReady() times out into the friendly "blocked / offline" message */ };
+    document.head.appendChild(s);
+  }
   static isSignedIn(): boolean {
     try { return !!window.puter?.auth?.isSignedIn?.(); } catch { return false; }
   }
-  /** Waits for the CDN script to be usable (it's a blocking tag, but ad-blockers/retries can delay it). */
+  /** Waits for the CDN script to be usable (loads it first if needed; ad-blockers/retries can delay it). */
   static async waitForReady(timeoutMs = 8000): Promise<void> {
+    PuterProvider.ensureInjected();
     const start = Date.now();
     while (!(typeof window !== "undefined" && window.puter?.ai?.chat)) {
       if (Date.now() - start > timeoutMs)

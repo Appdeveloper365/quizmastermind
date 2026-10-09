@@ -1,5 +1,13 @@
 # Quiz Mastermind — AI trivia quiz agent (PWA + APK-ready)
 
+Free AI trivia quiz that runs entirely in your browser: type a subject, and the AI writes a fresh
+multiple-choice question (4 options + explanation) every time, with no repeats — scored, streaked,
+installable as a PWA, with an Android APK.
+
+- **Descriptions copy-pasted from** [`docs/app-description.md`](docs/app-description.md) (one-liner → Play Store listing).
+- **Legal:** [`public/privacy-policy.html`](public/privacy-policy.html) · [`public/terms.html`](public/terms.html) — both linked from the app's footer.
+- **Risk review (shipping):** [`docs/2026-10-08-shipping-risk-review.md`](docs/2026-10-08-shipping-risk-review.md).
+
 Run from the project folder.
 
 ## One-time first push
@@ -54,13 +62,13 @@ beforeinstallprompt (Android/Chrome/Edge desktop; iOS via Share → Add to Home 
 
 The app can use models running **on your own device** — free, private, works offline:
 
-1. **In-browser AI (WebLLM)** — no install, no key, no account: AI settings → 💻 Local AI →
-   "Run AI in this browser" → pick a compact model → Enable. The model downloads once
+1. **In-browser AI (WebLLM)** — no install, no key, no account: click **💻 Local AI** →
+   "🌐 Run AI in this browser (WebLLM)" → pick a compact model → Enable. The model downloads once
    (Chrome/Edge with WebGPU), then generates questions fully offline. It's also the automatic
    last-resort fallback when cloud providers fail.
 2. **Ollama / LM Studio** — install [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai)
    and start it. (Ollama: `ollama pull llama3.2` then `ollama serve`. LM Studio: download a model
-   and start the local server.) Then press **💻 Local AI** → **🔄 Detect local models** — the app
+   and start the local server.) Then click **💻 Local AI** → **🔄 Detect local models** — the app
    probes localhost, finds the server and lists every installed model automatically.
 3. Pick a model → **💾 Use this model &amp; close**. No API key, no cloud, no account.
 
@@ -69,8 +77,12 @@ The app can use models running **on your own device** — free, private, works o
 - **☁️ Puter** — free cloud AI on your own Puter account, no API key. Press **☁️ Puter**, sign in, done.
 - **🔑 Remote API key** — bring a free key from Gemini, Groq, Pollinations, OpenRouter or xAI. Press **🔑 Remote API key**, paste, save. (Pollinations: free key at enter.pollinations.ai/keys, no card — one key routes to many models.)
 
-## Privacy policy
+## Privacy policy & terms
 
-public/privacy-policy.html — local API keys (PIN-free, masked in the UI), IndexedDB quiz history, prompts go only
-to your chosen AI provider under its own policy. No analytics, ads, accounts on this site.
+- `public/privacy-policy.html` — what is stored on your device (localStorage keys + quiz data, IndexedDB
+  question history, Cache Storage model/app files) and exactly what is sent where (per-provider hosts,
+  localhost, the Hugging Face model download, GitHub Pages hosting). No analytics, ads or accounts.
+- `public/terms.html` — AI-content disclaimer, third-party-provider separation, $0 liability cap.
+- Both are linked from the app footer; the app ships a strict Content-Security-Policy (see
+  `docs/2026-10-08-shipping-risk-review.md`).
 

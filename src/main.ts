@@ -40,6 +40,8 @@ const stats = loadStats();
 let score = 0, streak = 0;
 let abort: AbortController | null = null;
 let puterReady = false;
+/** Set while the on-demand Puter SDK tag is loading so the badge can show progress. */
+let puterLoadDeadline = 0;
 
 /* ---------- Provider choice state (kept for compatibility) ---------- */
 let providerChoiceState: ProviderChoice = "auto";
@@ -131,6 +133,7 @@ function renderProviderButtons() {
    and, once it is actually connected, make it the active provider. */
 selPuter.onclick = () => {
   showPane("puter");
+  loadPuterSdk();
   if (puterReady) { setProviderChoice("puter"); status("☁️ Provider set to Puter (auto model). Press ▶ Start."); }
   else status("☁️ Press “Sign in with Puter” to connect — free, and sign-up takes seconds.");
 };
@@ -297,11 +300,24 @@ $("webllmClear").onclick = () => { clearWebllmModel(); engine = null; cancelPref
 renderWebllmUI();
 
 /* ---------- Puter (free cloud, sign-in) ---------- */
+/** Loads Puter's SDK on demand — the tag is not in index.html, so no third-party code
+ *  runs on page load unless the user picks Puter (or already chose it). */
+function loadPuterSdk() {
+  puterLoadDeadline = Date.now() + 8000;
+  PuterProvider.ensureInjected();
+  void checkPuter();
+}
 async function checkPuter() {
-  puterBadge.className = `badge ${PuterProvider.isSignedIn() ? "ok" : PuterProvider.isLoaded() ? "wait" : "off"}`;
-  puterBadge.textContent = PuterProvider.isSignedIn()
+  const loaded = PuterProvider.isLoaded(), signed = PuterProvider.isSignedIn();
+  const loading = !loaded && PuterProvider.isInjected() && Date.now() < puterLoadDeadline;
+  puterBadge.className = `badge ${signed ? "ok" : loading || loaded ? "wait" : PuterProvider.isInjected() ? "off" : "idle"}`;
+  puterBadge.textContent = signed
     ? "signed in"
-    : PuterProvider.isLoaded() ? "signed out" : "Puter.js blocked / offline";
+    : loaded ? "signed out"
+    : loading ? "loading Puter.js…"
+    : PuterProvider.isInjected() ? "Puter.js blocked / offline"
+    : "not loaded (loads on demand)";
+  if (loading) setTimeout(() => void checkPuter(), 500);
   puterReady = PuterProvider.isSignedIn();
   let who = "";
   try {
@@ -313,7 +329,7 @@ async function checkPuter() {
     : "No account yet? Press “Sign in with Puter” — it takes seconds, and one account works across every Puter app.";
   await refreshKeyMarks(); renderProviderNote(); renderProviderButtons();
 }
-$("puterRecheck").onclick = () => void checkPuter();
+$("puterRecheck").onclick = () => loadPuterSdk();
 $("puterSignIn").onclick = async () => {
   try { await PuterProvider.signIn(); await checkPuter(); }
   catch (e) { status(`⚠️ ${(e as Error).message}`); return; }
@@ -345,6 +361,7 @@ $("puterTest").onclick = async () => {
     res.textContent = `❌ ${explainError(e)}`;
   }
 };
+if (providerChoiceState === "puter") loadPuterSdk(); // chosen provider is Puter — restore its state
 await checkPuter();
 renderProviderNote();
 

@@ -1,6 +1,6 @@
 import { QuizEngine } from "./quiz/engine";
 import { providerChain, choiceName, type ProviderChoice } from "./quiz/select";
-import { keyStore } from "./storage/keys";
+import { keyStore, keyPrefs } from "./storage/keys";
 import { loadStats, saveStats } from "./storage/game";
 import { ProviderError } from "./providers/types";
 import { BYOK, BYOK_IDS, isByokId, FREE_KEY_PORTAL, type ByokId } from "./providers/registry";
@@ -71,6 +71,7 @@ const puterBadge = $("puterBadge");
 const byokProvider = $<HTMLSelectElement>("byokProvider");
 const keyInput = $<HTMLInputElement>("keyInput");
 const keyFieldHint = $("keyFieldHint");
+const noPersistCb = $<HTMLInputElement>("noPersist");
 const localDetect = $<HTMLButtonElement>("localDetect"), localTest = $<HTMLButtonElement>("localTest");
 const localModelSel = $<HTMLSelectElement>("localModelSel"), localStatus = $("localStatus");
 const localSave = $<HTMLButtonElement>("localSave"), localClear = $<HTMLButtonElement>("localClear");
@@ -83,6 +84,14 @@ topicInput.onchange = () => { localStorage.setItem("quiz.topic", topicInput.valu
 difficultySel.onchange = () => cancelPrefetch();
 reuse.checked = localStorage.getItem("quiz.reuse") === "yes";
 reuse.onchange = () => { localStorage.setItem("quiz.reuse", reuse.checked ? "yes" : "no"); engine = null; };
+noPersistCb.checked = keyPrefs.noPersist;
+noPersistCb.onchange = () => {
+  keyPrefs.noPersist = noPersistCb.checked;
+  void renderKeyUI();
+  status(noPersistCb.checked
+    ? "🧹 Keys will now be held in memory for this tab only — nothing is written to this device."
+    : "Keys will be saved on this device again (encrypted at rest).");
+};
 const setAuto = (on: boolean) => {
   autoNext.checked = autoNextPref.checked = on;
   localStorage.setItem("quiz.autoNext", on ? "yes" : "no");
@@ -513,18 +522,25 @@ function renderQuestion(q: QuizQuestion) {
   });
 }
 
+/** Defense in depth: never let anything that looks like key material leak into UI text. */
+const redactKeys = (s: string) =>
+  s.replace(/\b(?:AIza[0-9A-Za-z_-]{10,}|gsk_[A-Za-z0-9]{10,}|xai-[A-Za-z0-9-]{10,}|sk-or-v1-[A-Za-z0-9]{10,}|sk-[A-Za-z0-9]{20,})\b/g, "[key hidden]");
+
 function explainError(e: unknown): string {
+  let msg: string;
   if (e instanceof ProviderError) {
     switch (e.kind) {
-      case "auth": return e.message.startsWith("No ") ? e.message : "Your API key was rejected. Clear it below and paste it again.";
-      case "quota": return "Your account is out of credits / free allowance. Switch provider or wait for the daily reset.";
-      case "rate_limit": return "Rate limited by the provider (free tiers have per-minute/day caps). Wait a moment or switch provider.";
-      case "unsupported": return e.message;
-      case "refusal": return "The model declined this topic. Try a different one.";
-      default: return e.message;
+      case "auth": msg = e.message.startsWith("No ") ? e.message : "Your API key was rejected. Clear it below and paste it again."; break;
+      case "quota": msg = "Your account is out of credits / free allowance. Switch provider or wait for the daily reset."; break;
+      case "rate_limit": msg = "Rate limited by the provider (free tiers have per-minute/day caps). Wait a moment or switch provider."; break;
+      case "unsupported": msg = e.message; break;
+      case "refusal": msg = "The model declined this topic. Try a different one."; break;
+      default: msg = e.message; break;
     }
+  } else {
+    msg = (e as Error).message;
   }
-  return (e as Error).message;
+  return redactKeys(msg);
 }
 async function generateAndShow() {
   abort?.abort(); abort = new AbortController();
@@ -581,7 +597,9 @@ $("saveClose").onclick = async () => {
   await refreshKeyMarks(); await renderKeyUI();
   connection.querySelector(".start-here")?.remove(); connection.classList.remove("attention");
   $("start").scrollIntoView({ behavior: "smooth", block: "center" });
-  status(`✅ ${info.name} key saved. Provider set to “${info.name}”. Press ▶ Start.`);
+  status(keyPrefs.noPersist
+    ? `✅ ${info.name} key held for this tab only (not saved on this device). Provider set to “${info.name}”. Press ▶ Start.`
+    : `✅ ${info.name} key saved (encrypted on this device). Provider set to “${info.name}”. Press ▶ Start.`);
 };
 $("replaceKey").onclick = () => {
   keyInput.value = ""; keyInput.disabled = false; keyInput.focus();
@@ -598,6 +616,12 @@ $("clearKey").onclick = async () => {
 $("resetHistory").onclick = async () => {
   const topic = currentTopic(); await QuizEngine.resetHistory(topic, currentDifficulty()); cancelPrefetch();
   status(`🔄 Forgot your history for "${topic}" (${difficultySel.value}).`);
+};
+$("wipeKeys").onclick = async () => {
+  const n = await keyStore.wipeAll();
+  if (isByokId(providerChoiceState)) setProviderChoice("auto");
+  await refreshKeyMarks(); renderProviderNote(); await renderKeyUI();
+  status(n ? `🗑 Wiped ${n} stored key${n > 1 ? "s" : ""} from this device.` : "No keys were stored on this device.");
 };
 renderStats();
 

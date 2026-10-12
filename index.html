@@ -180,6 +180,8 @@
             <button id="clearKey" style="width:auto">🗑 Clear this key</button>
           </div>
           <small class="hint" id="testResult"></small>
+          <label class="inline"><input type="checkbox" id="noPersist" /> 🧹 Don't save keys on this device (held in memory for this tab only)</label>
+          <small class="hint" id="noPersistHint">Keys stay encrypted on this device by default; tick this to keep them in memory only, so closing the tab forgets them entirely.</small>
         </section>
 
         <!-- ---------- LOCAL AI ---------- -->
@@ -216,6 +218,7 @@
         <label><input type="checkbox" id="autoNextPref" /> ⏭ Auto-advance to the next question after a short countdown</label>
         <label><input type="checkbox" id="reuse" /> ♻️ Reuse saved questions first when available (saves API credits)</label>
         <button id="resetHistory" class="small">🔄 Forget what I've seen for the current subject (clears saved questions too)</button>
+        <button id="wipeKeys" class="small">🗑 Wipe all saved keys</button>
         <small class="hint" id="keySummary"></small>
       </section>
 

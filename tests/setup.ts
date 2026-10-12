@@ -5,6 +5,9 @@ const store = new Map<string, string>();
   getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
   setItem: (k: string, v: string) => { store.set(k, String(v)); },
   removeItem: (k: string) => { store.delete(k); },
+  clear: () => { store.clear(); },
+  get length() { return store.size; },
+  key: (i: number) => [...store.keys()][i] ?? null,
 };
 (globalThis as any).location = (globalThis as any).location ?? { origin: "http://localhost" };
 
